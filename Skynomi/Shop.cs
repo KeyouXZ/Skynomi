@@ -3,9 +3,9 @@ using TShockAPI;
 
 namespace Skynomi {
     public class SkyShop {
-        private static Config config;
-        private static SkyDatabase database;
-        private static System.Timers.Timer broadcastTimer;
+        private static Config? config;
+        private static SkyDatabase? database;
+        private static System.Timers.Timer? broadcastTimer;
         public static void Initialize() {
             config = Config.Read();
             

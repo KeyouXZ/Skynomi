@@ -70,31 +70,6 @@ namespace Skynomi
             SkyDatabase.InitializeDatabase();
         }
 
-        /* private void OnNpcKilled(NpcKilledEventArgs args)
-        {
-            try {
-                if (args.npc.lastInteraction < 0 || args.npc.lastInteraction >= TShock.Players.Length)
-                    return;
-
-                var player = TShock.Players[args.npc.lastInteraction];
-                if (player == null || !player.Active)
-                    return;
-
-                int reward;
-                if (args.npc.boss) {
-                    reward = (int)((args.npc.lifeMax / 4) * 0.5);
-                } else {
-                    reward = (int)((args.npc.lifeMax / 4) * 1.2);
-                }
-
-                SkyDatabase.AddBalance(player.Name, reward);
-                ShowFloatingText(player, $"+{reward} {config.Currency}");
-            } catch (Exception ex) {
-                TShock.Log.ConsoleError(ex.ToString());
-                return;
-            }
-        } */
-
         private void OnNpcHit(NpcStrikeEventArgs args)
         {
             int npcId = args.Npc.whoAmI;
@@ -193,6 +168,13 @@ namespace Skynomi
 
         // Commands
         private void Balance(CommandArgs args) {
+            // Login is required
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You must be logged in to use this commands");
+                return;
+            }
+
             if (args.Player == null)
                 return;
 
@@ -219,6 +201,12 @@ namespace Skynomi
         }
 
         private void Pay(CommandArgs args) {
+            // Login is required
+            if (!args.Player.IsLoggedIn) {
+                args.Player.SendErrorMessage("You must be logged in to use this commands");
+                return;
+            }
+
             if (args.Player == null)
                 return;
 
