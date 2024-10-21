@@ -47,21 +47,21 @@ This command will return the amount of virtual currency the player currently has
 
 This will send 500 units of virtual currency to the player named "Keyou".
 
-### `/list`
+### `/shop list`
 
 **Description**: Displays a list of items available for purchase.
 
 **Usage**: 
-/list
+/shop list
 
 This command will show a list of all items that can be bought, along with their prices.
 
-### `/buy`
+### `/shop buy`
 
 **Description**: Allows a player to buy an item from the available list using virtual currency.
 
 **Usage**:
-/buy <item> [amount]
+/shop buy <item> [amount]
 
 - `<item>`: The name of the item you want to purchase.
 - `[amount]`: The quantity of the item you want to purchase (optional, defaults to 1 if not specified).
@@ -72,8 +72,9 @@ To use the Skynomi commands, players must have the appropriate permissions set u
 
 - **`balance` permission**: `skynomi.balance`
 - **`pay` permission**: `skynomi.pay`
-- **`buy` permission**: `skynomi.buy`
-- **`list` permission**: `skynomi.list`
+- **`shop` permission**: `skynomi.shop`
+- **`shop buy` permission**: `skynomi.shop.buy`
+- **`shop list` permission**: `skynomi.shop.list`
 
 ## Installation
 

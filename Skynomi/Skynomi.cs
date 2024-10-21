@@ -14,7 +14,7 @@ namespace Skynomi
         public override string Author => "Keyou";
         public override string Description => "Terraria Economy System";
         public override string Name => "Skynomi";
-        public override Version Version => new Version(1, 0, 0);
+        public override Version Version => new Version(1, 0, 1);
 
         private Config config;
         private SkyDatabase database;
@@ -35,12 +35,15 @@ namespace Skynomi
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
             ServerApi.Hooks.NpcKilled.Register(this, OnNpcKilled);
             GeneralHooks.ReloadEvent += Reload;
-            // test
+            
             ServerApi.Hooks.NpcStrike.Register(this, OnNpcHit);
 
-            Commands.ChatCommands.Add(new Command("skynomi.balance", Balance, "balance", "bal"));
-            Commands.ChatCommands.Add(new Command("skynomi.pay", Pay, "pay"));
             SkyShop.Initialize();
+            SkyCommands.Initialize();
+
+            Commands.ChatCommands.Add(new Command(Permissions.Balance, SkyCommands.Balance, "balance", "bal"));
+            Commands.ChatCommands.Add(new Command(Permissions.List, SkyCommands.Pay, "pay"));
+            Commands.ChatCommands.Add(new Command(Permissions.Shop, SkyCommands.Shop, "shop"));
         }
 
         protected override void Dispose(bool disposing)
@@ -59,9 +62,10 @@ namespace Skynomi
 
         public void Reload(ReloadEventArgs args)
         {
-            args.Player.SendMessage("Skynomi Reloaded", Color.LightGreen);
+            args.Player.SendSuccessMessage("[Skynomi] Reloaded");
             config = Config.Read();
             SkyShop.Reload();
+            SkyCommands.Reload();
         }
 
         private void OnInitialize(EventArgs args)
@@ -163,99 +167,6 @@ namespace Skynomi
             position.Y -= 48f;
 
             player.SendData(PacketTypes.CreateCombatTextExtended, text, (int)Color.Blue.PackedValue, position.X, position.Y);
-        }
-
-
-        // Commands
-        private void Balance(CommandArgs args) {
-            // Login is required
-            if (!args.Player.IsLoggedIn)
-            {
-                args.Player.SendErrorMessage("You must be logged in to use this commands");
-                return;
-            }
-
-            if (args.Player == null)
-                return;
-
-            string targetUsername = args.Parameters.Count > 0 ? args.Parameters[0] : args.Player.Name;
-
-            var targetPlayer = TShock.Players
-            .Where(p => p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
-            .FirstOrDefault();
-
-            if (targetPlayer == null) {
-                args.Player.SendErrorMessage($"Player '{targetUsername}' not found.");
-                return;
-            }
-
-            decimal balance = SkyDatabase.GetBalance(targetPlayer.Name);
-
-            if (args.Parameters.Count == 0) {
-                targetUsername = "Your";
-            } else {
-                targetUsername = $"{targetPlayer.Name}'s";
-            }
-
-            args.Player.SendInfoMessage($"{targetUsername} balance: {balance} {config.Currency}");
-        }
-
-        private void Pay(CommandArgs args) {
-            // Login is required
-            if (!args.Player.IsLoggedIn) {
-                args.Player.SendErrorMessage("You must be logged in to use this commands");
-                return;
-            }
-
-            if (args.Player == null)
-                return;
-
-            string usage = "Usage: /pay <player> <amount>";
-            // send usage message when only using /pay
-            if (args.Parameters.Count == 0) {
-                args.Player.SendErrorMessage(usage);
-                return;
-            }
-
-            string targetUsername = args.Parameters.Count > 0 ? args.Parameters[0] : args.Player.Name;
-
-            var targetPlayer = TShock.Players
-            .Where(p => p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
-            .FirstOrDefault();
-
-            if (targetPlayer == null) {
-                args.Player.SendErrorMessage($"Player '{targetUsername}' not found.");
-                return;
-            } else if (targetPlayer.Name == args.Player.Name) {
-                args.Player.SendErrorMessage("You cannot pay yourself.");
-                return;
-            }
-
-            decimal balancePlayer = SkyDatabase.GetBalance(args.Player.Name);
-            decimal balanceTarget = SkyDatabase.GetBalance(targetPlayer.Name);
-
-
-            // Check if the player has enough balance to pay
-            if (!int.TryParse(args.Parameters[1], out int amount)) {
-                args.Player.SendErrorMessage("Invalid amount.");
-                return;
-            }
-
-            if (amount <= 0) {
-                args.Player.SendErrorMessage("Amount must be greater than 0.");
-                return;
-            }
-
-            if (balancePlayer < amount) {
-                args.Player.SendErrorMessage($"You do not have enough {config.Currency} to pay.");
-                return;
-            }
-
-            SkyDatabase.RemoveBalance(args.Player.Name, amount);
-            SkyDatabase.AddBalance(targetPlayer.Name, amount);
-
-            args.Player.SendInfoMessage($"You have paid {amount} {config.Currency} to {targetPlayer.Name}.");
-            targetPlayer.SendInfoMessage($"You have received {amount} {config.Currency} from {args.Player.Name}.");
         }
     }
 }
