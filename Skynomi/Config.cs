@@ -4,9 +4,13 @@ using TShockAPI;
 namespace Skynomi {
     public class Config
     {
+        [JsonProperty("Currency")]
         public string Currency { get; set; } = "Skyorb";
+        [JsonProperty("Auto Broadcast Shop")]
         public bool AutoBroadcastShop { get; set; } = false;
+        [JsonProperty("Broadcast Interval in Seconds")]
         public int BroadcastIntervalInSeconds { get; set; } = 60;
+        [JsonProperty("Shop Items")]
         public Dictionary<string, Int32> ShopItems { get; set; } = new Dictionary<string, Int32>();
 
 

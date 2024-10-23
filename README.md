@@ -18,7 +18,7 @@
 **Description**: Displays the player's current virtual currency balance.
 
 **Usage**: 
-/balance [player]
+`/balance [player]`
 
 - `[player]`: The name of the player you want to check their balance (Optional, defaults to yourself).
 
@@ -35,7 +35,7 @@ This command will return the amount of virtual currency the player currently has
 **Description**: Allows a player to send virtual currency to another player.
 
 **Usage**:
-/pay <player> <amount>
+`/pay <player> <amount>`
 
 - `<player>`: The name of the player you want to send money to.
 - `<amount>`: The amount of money you want to send.
@@ -52,7 +52,7 @@ This will send 500 units of virtual currency to the player named "Keyou".
 **Description**: Displays a list of items available for purchase.
 
 **Usage**: 
-/shop list
+`/shop list`
 
 This command will show a list of all items that can be bought, along with their prices.
 
@@ -61,10 +61,30 @@ This command will show a list of all items that can be bought, along with their 
 **Description**: Allows a player to buy an item from the available list using virtual currency.
 
 **Usage**:
-/shop buy <item> [amount]
+`/shop buy <item> [amount]`
 
 - `<item>`: The name of the item you want to purchase.
 - `[amount]`: The quantity of the item you want to purchase (optional, defaults to 1 if not specified).
+
+**Example:**
+```
+/shop buy 4444 1
+```
+
+### `/admin setbal`
+**Description**: Sets the balance of a player.
+
+**Usage**:
+`/admin setbal <player> <amount>`
+
+- `<player>`: The name of the player whose balance you want to set.
+- `<amount>`: The new balance value for the player.
+
+**Example:**
+```
+/admin setbal Keyou 1000
+/admin setbal Keyou -500
+```
 
 ## Permissions
 
@@ -75,6 +95,9 @@ To use the Skynomi commands, players must have the appropriate permissions set u
 - **`shop` permission**: `skynomi.shop`
 - **`shop buy` permission**: `skynomi.shop.buy`
 - **`shop list` permission**: `skynomi.shop.list`
+- **`admin` permission**: `skynomi.admin`
+- **`admin setball` permission**: `skynomi.admin.balance`
+
 
 ## Installation
 
@@ -94,9 +117,13 @@ In the `Skynomi.json` configuration file, you can set various options such as:
 ```json
 {
   "Currency": "Skyorb",
-  "AutoBroadcastShop": false,
-  "BroadcastIntervalInSeconds": 60,
-  "ShopItems": {}
+  "Auto Broadcast Shop": false,
+  "Broadcast Interval in Seconds": 60,
+  "Shop Items": {
+    "1": 100,
+    "2": 200,
+    "3": 300
+  }
 }
 ```
 
@@ -106,6 +133,11 @@ In the `Skynomi.json` configuration file, you can set various options such as:
 - Added `balance` and `pay` commands
 - Basic economy system
 - Shop system
+
+**Version 1.0.1**
+- Added `shop list` and `shop buy` commands
+- Added `admin setbal` command for admin
+- Config file more readable
 
 ## License
 
