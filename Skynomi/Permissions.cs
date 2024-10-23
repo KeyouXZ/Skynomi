@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Skynomi
+﻿namespace Skynomi
 {
     public static class SkyPermissions
     {
@@ -13,5 +7,8 @@ namespace Skynomi
         public static readonly string Shop = "skynomi.shop";
         public static readonly string List = "skynomi.shop.list";
         public static readonly string Buy = "skynomi.shop.buy";
+
+        public static readonly string Admin = "skynomi.admin";
+        public static readonly string AdminBalance = "skynomi.admin.balance";
     }
 }

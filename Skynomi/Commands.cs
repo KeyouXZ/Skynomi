@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Org.BouncyCastle.Math.EC.ECCurve;
-using TShockAPI;
+﻿using TShockAPI;
 
 namespace Skynomi
 {
@@ -13,6 +7,11 @@ namespace Skynomi
         public static void Initialize()
         {
             config = Config.Read();
+
+            Commands.ChatCommands.Add(new Command(SkyPermissions.Balance, Balance, "balance", "bal"));
+            Commands.ChatCommands.Add(new Command(SkyPermissions.List, Pay, "pay"));
+            Commands.ChatCommands.Add(new Command(SkyPermissions.Shop, Shop, "shop"));
+            Commands.ChatCommands.Add(new Command(SkyPermissions.Admin, Admin, "admin"));
         }
 
         public static void Reload()
@@ -24,11 +23,23 @@ namespace Skynomi
         {
             if (!args.Player.IsLoggedIn)
             {
-                args.Player.SendErrorMessage("You must be logged in to use this commands");
+                args.Player.SendErrorMessage(SkyMessages.NotLogged);
                 return false;
             }
             return true;
         }
+
+        public static bool CheckPermission(string perm, CommandArgs args)
+        {
+            if (!args.Player.HasPermission(perm))
+            {
+                args.Player.SendErrorMessage(SkyMessages.PermissionError, Commands.Specifier);
+                return false;
+            }
+
+            return true;
+        }
+
         // Commands
         public static void Balance(CommandArgs args)
         {
@@ -151,11 +162,7 @@ namespace Skynomi
 
             if (args.Parameters[0] == "buy")
             {
-                if (!args.Player.HasPermission(SkyPermissions.Buy))
-                {
-                    args.Player.SendErrorMessage(SkyMessages.PermissionError, Commands.Specifier);
-                    return;
-                }
+                if (!CheckPermission(SkyPermissions.Buy, args)) return;
 
                 try
                 {
@@ -233,14 +240,58 @@ namespace Skynomi
             } 
             else if (args.Parameters[0] == "list")
             {
-                if (!args.Player.HasPermission(SkyPermissions.List))
-                {
-                    args.Player.SendErrorMessage(SkyMessages.PermissionError, Commands.Specifier);
-                    return;
-                }
+                if (!CheckPermission(SkyPermissions.List, args)) return;
 
                 args.Player.SendInfoMessage(SkyShop._List());
             }
+        }
+
+        // Admin commands
+        public static void Admin(CommandArgs args)
+        {
+            string usage = $"setbal: Set user's {config.Currency} to a specific amount. Use - to reduce user currency";
+
+            if (args.Parameters.Count <= 0)
+            {
+                args.Player.SendErrorMessage("Usage: /admin <command>");
+                args.Player.SendSuccessMessage("Command list:");
+                args.Player.SendErrorMessage(usage);
+                return;
+            }
+            else if (args.Parameters[0] == "setbal")
+            {
+                if (!CheckPermission(SkyPermissions.AdminBalance, args)) return;
+                string SetbalUsage = "Usage: /admin setbal <user> <amount>";
+
+                if (args.Parameters.Count < 2)
+                {
+                    args.Player.SendErrorMessage(SetbalUsage);
+                    return;
+                }
+
+                string targetUsername = args.Parameters.Count > 1 ? args.Parameters[1] : args.Player.Name;
+
+                var targetPlayer = TShock.Players
+                .Where(p => p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
+                .FirstOrDefault();
+
+                if (targetPlayer == null)
+                {
+                    args.Player.SendErrorMessage($"Player '{targetUsername}' not found.");
+                    return;
+                }
+
+                decimal balanceTarget = SkyDatabase.GetBalance(targetPlayer.Name);
+
+                if (!int.TryParse(args.Parameters[2], out int amount))
+                {
+                    args.Player.SendErrorMessage("Invalid amount.");
+                    return;
+                }
+
+                SkyDatabase.AddBalance(targetPlayer.Name, (int)amount);
+                args.Player.SendSuccessMessage($"Successfully gave {amount} {config.Currency} to {targetUsername}");
+            } 
         }
     }
 }

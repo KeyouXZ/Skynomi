@@ -1,5 +1,4 @@
-﻿using System.Data;
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using TerrariaApi.Server;
 using TShockAPI;
 using Terraria;
@@ -40,10 +39,6 @@ namespace Skynomi
 
             SkyShop.Initialize();
             SkyCommands.Initialize();
-
-            Commands.ChatCommands.Add(new Command(SkyPermissions.Balance, SkyCommands.Balance, "balance", "bal"));
-            Commands.ChatCommands.Add(new Command(SkyPermissions.List, SkyCommands.Pay, "pay"));
-            Commands.ChatCommands.Add(new Command(SkyPermissions.Shop, SkyCommands.Shop, "shop"));
         }
 
         protected override void Dispose(bool disposing)
