@@ -151,9 +151,9 @@ namespace Skynomi
 
             if (args.Parameters[0] == "buy")
             {
-                if (!args.Player.HasPermission(Permissions.Buy))
+                if (!args.Player.HasPermission(SkyPermissions.Buy))
                 {
-                    args.Player.SendErrorMessage("[Skynomi] You don't have permission to use this command", Commands.Specifier);
+                    args.Player.SendErrorMessage(SkyMessages.PermissionError, Commands.Specifier);
                     return;
                 }
 
@@ -233,9 +233,9 @@ namespace Skynomi
             } 
             else if (args.Parameters[0] == "list")
             {
-                if (!args.Player.HasPermission(Permissions.List))
+                if (!args.Player.HasPermission(SkyPermissions.List))
                 {
-                    args.Player.SendErrorMessage("[Skynomi] You don't have permission to use this command", Commands.Specifier);
+                    args.Player.SendErrorMessage(SkyMessages.PermissionError, Commands.Specifier);
                     return;
                 }
 

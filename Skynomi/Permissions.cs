@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Skynomi
 {
-    public static class Permissions
+    public static class SkyPermissions
     {
         public static readonly string Balance = "skynomi.balance";
         public static readonly string Pay = "skynomi.pay";

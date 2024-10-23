@@ -11,6 +11,7 @@ namespace Skynomi {
             
             // broadcast
             if (config.AutoBroadcastShop && _List() != "No items available") {
+                TShock.Log.Warn(SkyMessages.AutoShopDisabled);
                 broadcastTimer = new System.Timers.Timer(config.BroadcastIntervalInSeconds * 1000);
                 broadcastTimer.Elapsed += OnBroadcastTimerElapsed;
                 broadcastTimer.AutoReset = true;
@@ -26,6 +27,7 @@ namespace Skynomi {
             config = Config.Read();
 
             if (config.AutoBroadcastShop && _List() != "No items available") {
+                TShock.Log.Warn(SkyMessages.AutoShopDisabled);
                 broadcastTimer = new System.Timers.Timer(config.BroadcastIntervalInSeconds * 1000);
                 broadcastTimer.Elapsed += OnBroadcastTimerElapsed;
                 broadcastTimer.AutoReset = true;

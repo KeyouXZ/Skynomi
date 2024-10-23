@@ -41,9 +41,9 @@ namespace Skynomi
             SkyShop.Initialize();
             SkyCommands.Initialize();
 
-            Commands.ChatCommands.Add(new Command(Permissions.Balance, SkyCommands.Balance, "balance", "bal"));
-            Commands.ChatCommands.Add(new Command(Permissions.List, SkyCommands.Pay, "pay"));
-            Commands.ChatCommands.Add(new Command(Permissions.Shop, SkyCommands.Shop, "shop"));
+            Commands.ChatCommands.Add(new Command(SkyPermissions.Balance, SkyCommands.Balance, "balance", "bal"));
+            Commands.ChatCommands.Add(new Command(SkyPermissions.List, SkyCommands.Pay, "pay"));
+            Commands.ChatCommands.Add(new Command(SkyPermissions.Shop, SkyCommands.Shop, "shop"));
         }
 
         protected override void Dispose(bool disposing)
@@ -52,7 +52,6 @@ namespace Skynomi
             {
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
                 ServerApi.Hooks.NpcKilled.Deregister(this, OnNpcKilled);
-                // test
                 ServerApi.Hooks.NpcStrike.Deregister(this, OnNpcHit);
 
                 _connection?.Close();
@@ -62,7 +61,7 @@ namespace Skynomi
 
         public void Reload(ReloadEventArgs args)
         {
-            args.Player.SendSuccessMessage("[Skynomi] Reloaded");
+            args.Player.SendSuccessMessage(SkyMessages.Reload);
             config = Config.Read();
             SkyShop.Reload();
             SkyCommands.Reload();
@@ -132,7 +131,6 @@ namespace Skynomi
                             if (!npcHitTimes.TryGetValue(args.npc.whoAmI, out Dictionary<string, DateTime> hitTimes) ||
                                 !hitTimes.TryGetValue(playerName, out DateTime firstHitTime))
                             {
-                                // Use the current time if no first hit time is found
                                 firstHitTime = DateTime.UtcNow;
                             }
 
