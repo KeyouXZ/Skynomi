@@ -36,10 +36,6 @@ namespace Skynomi
             GeneralHooks.ReloadEvent += Reload;
             GetDataHandlers.KillMe += PlayerDead;
 
-            // Rank
-            ranks = new Skynomi.RankSystem.Ranks();
-            ServerApi.Hooks.ServerChat.Register(this, ranks.OnChat);
-
             Skynomi.ShopSystem.Shop.Initialize();
             Skynomi.Commands.Initialize();
             Skynomi.RankSystem.Ranks.Initialize();
@@ -55,10 +51,6 @@ namespace Skynomi
                 ServerApi.Hooks.NpcStrike.Deregister(this, OnNpcHit);
                 GeneralHooks.ReloadEvent -= Reload;
                 GetDataHandlers.KillMe -= PlayerDead;
-
-                // Rank
-                ranks = new Skynomi.RankSystem.Ranks();
-                ServerApi.Hooks.ServerChat.Register(this, ranks.OnChat);
 
                 _connection?.Close();
             }
@@ -119,6 +111,7 @@ namespace Skynomi
                     return;
 
                 if (args.npc.SpawnedFromStatue && !config.RewardFromStatue) return;
+                if (args.npc.friendly && !config.RewardFromFriendlyNPC) return;
 
                 string rewardFormula = args.npc.boss ? config.BossReward : config.NpcReward;
 
@@ -145,8 +138,6 @@ namespace Skynomi
                 {
                     double damagePercentage = (double)playerDamage / totalDamage; // Percentage of total damage
                     int playerReward = (int)(baseReward * damagePercentage);
-
-                    if (args.npc.friendly && !config.RewardFromFriendlyNPC) return;
 
                     if (playerName == killer.Name)
                     {

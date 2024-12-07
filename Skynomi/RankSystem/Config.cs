@@ -40,16 +40,22 @@ namespace Skynomi.RankSystem
 
             defaultConfig.Ranks["Rank1"] = new Rank
             {
+                Prefix = "Level 1",
+                Suffix = "[i:4444]",
+                ChatColor = new int[] { 255, 255, 255 },
                 Cost = 100,
                 Rewards = new Dictionary<string, int>
-                    {
-                        { "1", 1 },
-                        { "2", 2 }
-                    }
+                {
+                    { "1", 1 },
+                    { "2", 2 }
+                }
             };
 
             defaultConfig.Ranks["Rank2"] = new Rank
             {
+                Prefix = "Level 2",
+                Suffix = "[i:4444]",
+                ChatColor = new int[] { 255, 255, 255 },
                 Cost = 200,
                 Rewards = new Dictionary<string, int>
                     {
@@ -63,6 +69,15 @@ namespace Skynomi.RankSystem
 
         public class Rank
         {
+            [JsonProperty("Prefix")]
+            public string Prefix = string.Empty;
+
+            [JsonProperty("Suffix")]
+            public string Suffix = string.Empty;
+
+            [JsonProperty("Chat Color")]
+            public int[] ChatColor = new int[]{};
+
             [JsonProperty("Cost")]
             public int Cost = 0;
 

@@ -27,7 +27,7 @@ namespace Skynomi {
                     CREATE TABLE IF NOT EXISTS Ranks (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         Username TEXT UNIQUE NOT NULL,
-                        Rank TEXT NOT NULL DEFAULT 'default',
+                        Rank INTEGER NOT NULL DEFAULT 0,
                         HighestRank INTEGER NOT NULL DEFAULT 0
                     )
                 ";
@@ -84,7 +84,7 @@ namespace Skynomi {
             }
         }
 
-        public static string GetLevel(string username)
+        public static int GetRank(string username)
         {
             using (var cmd = _connection.CreateCommand())
             {
@@ -96,18 +96,18 @@ namespace Skynomi {
                 object result = cmd.ExecuteScalar();
                 if (result != null && result != DBNull.Value)
                 {
-                    return Convert.ToString(result);
+                    return Convert.ToInt32(result);
                 }
                 else
                 {
                     // Create new account if not exists
-                    cmd.CommandText = "INSERT INTO Ranks (Username, Rank) VALUES (@Username, 'default')";
+                    cmd.CommandText = "INSERT INTO Ranks (Username, Rank) VALUES (@Username, 0)";
                     cmd.ExecuteNonQuery();
-                    return null;
+                    return 0;
                 }
             }
         }
-        public static void UpdateLevel(string username, string rank)
+        public static void UpdateRank(string username, int rank)
         {
             using (var cmd = _connection.CreateCommand())
             {

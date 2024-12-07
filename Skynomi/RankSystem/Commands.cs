@@ -42,21 +42,11 @@ namespace Skynomi.RankSystem
                 {
                     if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.RankUp, args)) return;
 
-                    string prefix = Skynomi.Database.GetLevel(args.Player.Name);
+                    // rank index start at 1
+                    int rank = Skynomi.Database.GetRank(args.Player.Name);
 
-                    Skynomi.RankSystem.Config.Rank rankDetails = null;
-                    if (rankConfig.Ranks.ContainsKey("prefix"))
-                    {
-                        rankDetails = rankConfig.Ranks[prefix];
-                    }
-                    else
-                    {
-                        rankDetails = null;
-                    }
-
-                    int index = GetRankIndex(prefix);
-
-                    int nextIndex = index + 1;
+                    // nextindex start at 0
+                    int nextIndex = rank;
                     if (nextIndex < rankConfig.Ranks.Count)
                     {
                         string nextRank = GetRankByIndex(nextIndex);
@@ -91,11 +81,12 @@ namespace Skynomi.RankSystem
                         ", new
                         {
                             Username = args.Player.Name,
-                            HighestRank = nextIndex
+                            HighestRank = (rank+1)
 
                         });
                         Skynomi.Database.RemoveBalance(args.Player.Name, rankCost);
-                        Skynomi.Database.UpdateLevel(args.Player.Name, nextRank);
+                        TShock.UserAccounts.SetUserGroup(TShock.UserAccounts.GetUserAccountByName(args.Player.Name), "rank_" + (rank+1));
+                        Skynomi.Database.UpdateRank(args.Player.Name, (rank+1));
                         args.Player.SendInfoMessage($"Your rank has been upgraded to {nextRank}.");
                     }
                     else
@@ -107,28 +98,20 @@ namespace Skynomi.RankSystem
                 {
                     if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.RankDown, args)) return;
 
-                    string prefix = Skynomi.Database.GetLevel(args.Player.Name);
+                    // start at 1
+                    int rank = Skynomi.Database.GetRank(args.Player.Name);
 
-                    Skynomi.RankSystem.Config.Rank rankDetails = null;
-                    if (rankConfig.Ranks.ContainsKey("prefix"))
-                    {
-                        rankDetails = rankConfig.Ranks[prefix];
-                    }
-                    else
-                    {
-                        rankDetails = null;
-                    }
-
-                    int index = GetRankIndex(prefix);
-
-                    int nextIndex = index - 1;
+                    // start at 0
+                    int nextIndex = (rank - 2);
                     if (nextIndex >= 0)
                     {
                         string nextRank = GetRankByIndex(nextIndex);
-                        int rankCost = rankConfig.Ranks[GetRankByIndex(index)].Cost;
+
+                        int rankCost = rankConfig.Ranks[GetRankByIndex(nextIndex)].Cost;
 
                         Skynomi.Database.AddBalance(args.Player.Name, rankCost);
-                        Skynomi.Database.UpdateLevel(args.Player.Name, nextRank);
+                        Skynomi.Database.UpdateRank(args.Player.Name, (rank-1));
+                        TShock.UserAccounts.SetUserGroup(TShock.UserAccounts.GetUserAccountByName(args.Player.Name), "rank_" + (rank-1));
                         args.Player.SendInfoMessage($"Your rank has been downgraded to {nextRank} and get {Skynomi.Utils.Util.CurrencyFormat(rankCost)}.");
                     }
                     else

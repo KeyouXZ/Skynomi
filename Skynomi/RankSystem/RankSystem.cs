@@ -1,76 +1,70 @@
 using TerrariaApi.Server;
 using TShockAPI;
-using System.IO;
 using Newtonsoft.Json.Linq;
 
 namespace Skynomi.RankSystem
 {
     public class Ranks
     {
-        private static Skynomi.RankSystem.Config config;
+        private static Skynomi.RankSystem.Config rankConfig;
         private static string commandSpecifier = "/";
         private static string commandSilentSpecifier = ".";
 
         public static void Initialize()
         {
-            LoadCommandSpecifiers();
-            config = Skynomi.RankSystem.Config.Read();
+            //LoadCommandSpecifiers();
+            rankConfig = Skynomi.RankSystem.Config.Read();
             Skynomi.RankSystem.Commands.Initialize();
+            CreateGroup();
         }
 
         public static void Reload()
         {
-            LoadCommandSpecifiers();
-            config = Skynomi.RankSystem.Config.Read();
+            //LoadCommandSpecifiers();
+            rankConfig = Skynomi.RankSystem.Config.Read();
             Skynomi.RankSystem.Commands.Reload();
         }
 
-        private static void LoadCommandSpecifiers()
+        public static void CreateGroup()
         {
-            string configPath = Path.Combine(TShock.SavePath, "config.json");
-
-            if (File.Exists(configPath))
+            int counter = 1;
+            if (rankConfig == null || rankConfig.Ranks == null)
             {
-                try
-                {
-                    string jsonText = File.ReadAllText(configPath);
-                    JObject json = JObject.Parse(jsonText);
+                TShock.Log.ConsoleError("Config for Ranks is null.");
+                return;
+            }
 
-                    commandSpecifier = json["CommandSpecifier"]?.ToString() ?? "/";
-                    commandSilentSpecifier = json["CommandSilentSpecifier"]?.ToString() ?? ".";
-                }
-                catch
+            foreach (var key in rankConfig.Ranks)
+            {
+                string name = "rank_" + counter;
+                string prefix = key.Value.Prefix ?? "";
+                string suffix = key.Value.Suffix ?? "";
+                string parent = (counter == 1) ? "default" : "rank_" + (counter-1).ToString();
+                int[] color = key.Value.ChatColor;
+                string chatColor = $"{color[0]},{color[1]},{color[2]}";
+               
+
+                counter++;
+
+                if (!TShock.Groups.GroupExists(name))
                 {
-                    TShock.Log.ConsoleError("Failed to load CommandSpecifier from tshock/config.json. Using defaults.");
+                    // Create the group
+                    TShock.Groups.AddGroup(name, parent, TShock.Groups.GetGroupByName(parent).Permissions, "255,255,255");
+                }
+                
+                // Assign prefix and suffix
+                var group = TShock.Groups.GetGroupByName(name);
+                if (group != null)
+                {
+                    group.Prefix = prefix;
+                    group.Suffix = suffix;
+                    group.ChatColor = chatColor;
+                }
+                else
+                {
+                    TShock.Log.ConsoleError("Failed to find group " + name + " after creation. Prefix and suffix were not applied.");
                 }
             }
-            else
-            {
-                TShock.Log.ConsoleError("tshock/config.json not found. Using default command specifiers.");
-            }
-        }
-
-        public void OnChat(ServerChatEventArgs args)
-        {
-            if (args.Text.StartsWith(commandSpecifier)
-                || args.Text.StartsWith(commandSilentSpecifier)
-                || args.Text.StartsWith(commandSpecifier + "help")
-                || args.Text.StartsWith(commandSilentSpecifier + "help")
-                ) return;
-
-            string playerName = TShock.Players[args.Who].Name;
-            string prefix = Skynomi.Database.GetLevel(playerName);
-            prefix = prefix == "default" ? "" : prefix + " ";
-
-            string modifiedMessage = $"{prefix}{playerName}: {args.Text}";
-            args.Handled = true;
-
-            TShock.Utils.Broadcast(
-                modifiedMessage,
-                TShock.Players[args.Who].Group.R,
-                TShock.Players[args.Who].Group.G,
-                TShock.Players[args.Who].Group.B
-            );
         }
     }
 }
