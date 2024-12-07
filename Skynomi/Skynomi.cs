@@ -4,6 +4,7 @@ using TShockAPI;
 using Terraria;
 using Microsoft.Xna.Framework;
 using TShockAPI.Hooks;
+using System.Data;
 
 namespace Skynomi
 {
@@ -15,30 +16,34 @@ namespace Skynomi
         public override string Name => "Skynomi";
         public override Version Version => new Version(1, 0, 1);
 
-        private Config config;
-        private SkyDatabase database;
-        private SkyShop shop;
+        private Skynomi.Config config;
+        private Skynomi.ShopSystem.Shop shop;
         private SqliteConnection _connection;
+        private Skynomi.RankSystem.Ranks ranks;
 
-        // test
-        private Dictionary<int, HashSet<string>> npcHitPlayers = new Dictionary<int, HashSet<string>>();
-        private Dictionary<int, Dictionary<string, DateTime>> npcHitTimes = new Dictionary<int, Dictionary<string, DateTime>>();
-
+        private Dictionary<int, NpcInteraction> npcInteractions = new Dictionary<int, NpcInteraction>();
 
         public SkynomiPlugin(Main game) : base(game)
         {
         }
 
         public override void Initialize()
-        {   
+        {
+            // This
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
             ServerApi.Hooks.NpcKilled.Register(this, OnNpcKilled);
-            GeneralHooks.ReloadEvent += Reload;
-            
             ServerApi.Hooks.NpcStrike.Register(this, OnNpcHit);
+            GeneralHooks.ReloadEvent += Reload;
+            GetDataHandlers.KillMe += PlayerDead;
 
-            SkyShop.Initialize();
-            SkyCommands.Initialize();
+            // Rank
+            ranks = new Skynomi.RankSystem.Ranks();
+            ServerApi.Hooks.ServerChat.Register(this, ranks.OnChat);
+
+            Skynomi.ShopSystem.Shop.Initialize();
+            Skynomi.Commands.Initialize();
+            Skynomi.RankSystem.Ranks.Initialize();
+            Skynomi.Utils.Util.Initialize();
         }
 
         protected override void Dispose(bool disposing)
@@ -48,6 +53,12 @@ namespace Skynomi
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
                 ServerApi.Hooks.NpcKilled.Deregister(this, OnNpcKilled);
                 ServerApi.Hooks.NpcStrike.Deregister(this, OnNpcHit);
+                GeneralHooks.ReloadEvent -= Reload;
+                GetDataHandlers.KillMe -= PlayerDead;
+
+                // Rank
+                ranks = new Skynomi.RankSystem.Ranks();
+                ServerApi.Hooks.ServerChat.Register(this, ranks.OnChat);
 
                 _connection?.Close();
             }
@@ -56,51 +67,50 @@ namespace Skynomi
 
         public void Reload(ReloadEventArgs args)
         {
-            args.Player.SendSuccessMessage(SkyMessages.Reload);
+            args.Player.SendSuccessMessage(Skynomi.Utils.Messages.Reload);
             config = Config.Read();
-            SkyShop.Reload();
-            SkyCommands.Reload();
+            Skynomi.ShopSystem.Shop.Reload();
+            Skynomi.Commands.Reload();
+            Skynomi.RankSystem.Ranks.Reload();
+            Skynomi.Utils.Util.Reload();
         }
 
         private void OnInitialize(EventArgs args)
         {
             config = Config.Read();
-            SkyDatabase.InitializeDatabase();
+            Skynomi.Database.InitializeDatabase();
         }
 
         private void OnNpcHit(NpcStrikeEventArgs args)
         {
             int npcId = args.Npc.whoAmI;
             TSPlayer player = TShock.Players[args.Player.whoAmI];
+            if (player == null) return;
+
             string playerName = player.Name;
 
-
-            // Ensure that the dictionary for NPC hits exists
-            if (!npcHitPlayers.ContainsKey(npcId))
+            if (!npcInteractions.TryGetValue(npcId, out var interaction))
             {
-                npcHitPlayers[npcId] = new HashSet<string>();
+                interaction = new NpcInteraction();
+                npcInteractions[npcId] = interaction;
             }
 
-            // Record the player who hit the NPC
-            npcHitPlayers[npcId].Add(playerName);
+            interaction.HitPlayers.Add(playerName);
 
-            // Record the time of first hit for the player
-            if (!npcHitTimes.ContainsKey(npcId))
-            {
-                npcHitTimes[npcId] = new Dictionary<string, DateTime>();
-            }
+            if (!interaction.DamageByPlayers.ContainsKey(playerName))
+                interaction.DamageByPlayers[playerName] = 0;
 
-            if (!npcHitTimes[npcId].ContainsKey(playerName))
-            {
-                npcHitTimes[npcId][playerName] = DateTime.UtcNow;
-            }
+            int cappedDamage = Math.Min(args.Damage, args.Npc.life);
+            interaction.DamageByPlayers[playerName] += cappedDamage;
+
+            if (!interaction.HitTimes.ContainsKey(playerName))
+                interaction.HitTimes[playerName] = DateTime.UtcNow;
         }
 
         private void OnNpcKilled(NpcKilledEventArgs args)
         {
             try
             {
-                // Validate the last interaction index
                 if (args.npc.lastInteraction < 0 || args.npc.lastInteraction >= TShock.Players.Length)
                     return;
 
@@ -108,42 +118,53 @@ namespace Skynomi
                 if (killer == null || !killer.Active)
                     return;
 
-                // Calculate base reward
-                int baseReward = args.npc.boss ? (int)((args.npc.lifeMax / 4) * 0.5) : (int)((args.npc.lifeMax / 4) * 1.2);
+                if (args.npc.SpawnedFromStatue && !config.RewardFromStatue) return;
 
-                // Reward the killer
-                SkyDatabase.AddBalance(killer.Name, baseReward);
-                ShowFloatingText(killer, $"+{baseReward} {config.Currency}");
+                string rewardFormula = args.npc.boss ? config.BossReward : config.NpcReward;
 
-                // Reward other players who dealt damage
-                if (npcHitPlayers.TryGetValue(args.npc.whoAmI, out HashSet<string> players))
+                rewardFormula = rewardFormula.Replace("{hp}", args.npc.lifeMax.ToString());
+
+                int baseReward;
+                try
                 {
-                    foreach (var playerName in players)
+                    var result = new DataTable().Compute(rewardFormula, null);
+                    baseReward = Convert.ToInt32(result);
+                }
+                catch
+                {
+                    TShock.Log.ConsoleError($"Invalid reward formula: {rewardFormula}");
+                    return;
+                }
+
+                if (!npcInteractions.TryGetValue(args.npc.whoAmI, out var interaction)) return;
+
+                int totalDamage = interaction.DamageByPlayers.Values.Sum();
+                if (totalDamage == 0) return;
+
+                foreach (var (playerName, playerDamage) in interaction.DamageByPlayers)
+                {
+                    double damagePercentage = (double)playerDamage / totalDamage; // Percentage of total damage
+                    int playerReward = (int)(baseReward * damagePercentage);
+
+                    if (args.npc.friendly && !config.RewardFromFriendlyNPC) return;
+
+                    if (playerName == killer.Name)
                     {
-                        var player = TShock.Players.FirstOrDefault(p => p?.Name == playerName);
-                        if (player != null && player.Active && player != killer)
+                        playerReward += (int)(baseReward * 0.1); // Bonus 10%
+                    }
+
+                    var player = TShock.Players.FirstOrDefault(p => p?.Name == playerName);
+                    if (player != null && player.Active)
+                    {
+                        if (playerReward > 0)
                         {
-                            if (!npcHitTimes.TryGetValue(args.npc.whoAmI, out Dictionary<string, DateTime> hitTimes) ||
-                                !hitTimes.TryGetValue(playerName, out DateTime firstHitTime))
-                            {
-                                firstHitTime = DateTime.UtcNow;
-                            }
-
-                            double timeElapsed = (DateTime.UtcNow - firstHitTime).TotalSeconds;
-
-                            if (timeElapsed <= 30)
-                            {
-                                int rewardForPlayer = (int)(baseReward * 0.7);
-                                SkyDatabase.AddBalance(player.Name, rewardForPlayer);
-                                ShowFloatingText(player, $"+{rewardForPlayer} {config.Currency}");
-                            }
+                            Skynomi.Database.AddBalance(player.Name, playerReward);
+                            ShowFloatingText(player, new string[] { "[Skynomi]", $"+ {Skynomi.Utils.Util.CurrencyFormat(playerReward)}", $"From: {NPC.GetFullnameByID(args.npc.netID)}", $"+ {Skynomi.Utils.Util.CurrencyFormat(playerReward)}" });
                         }
                     }
                 }
 
-                // Clean up dictionaries
-                npcHitTimes.Remove(args.npc.whoAmI);
-                npcHitPlayers.Remove(args.npc.whoAmI);
+                npcInteractions.Remove(args.npc.whoAmI);
             }
             catch (Exception ex)
             {
@@ -151,15 +172,58 @@ namespace Skynomi
             }
         }
 
-        private void ShowFloatingText(TSPlayer player, string text)
+
+        public void PlayerDead(object sender, GetDataHandlers.KillMeEventArgs args)
+        {
+            if (args.Player.IsLoggedIn && config.DropOnDeath > 0)
+            {
+
+                decimal playerBalance = Skynomi.Database.GetBalance(args.Player.Name);
+                var toLose = (int)(playerBalance * (config.DropOnDeath / 100));
+                Skynomi.Database.RemoveBalance(args.Player.Name, toLose);
+                args.Player.SendMessage($"You lost {Skynomi.Utils.Util.CurrencyFormat(toLose)} from dying!", Color.Orange);
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }
+
+
+        private void ShowFloatingText(TSPlayer player, string[] texts)
         {
             if (player?.Active != true)
                 return;
 
             var position = player.TPlayer.position;
-            position.Y -= 48f;
 
-            player.SendData(PacketTypes.CreateCombatTextExtended, text, (int)Color.Blue.PackedValue, position.X, position.Y);
+            if (config.Theme.ToLower() == "detailed")
+            {
+                var orangeColor = new Color(255, 165, 0);
+                var greenColor = new Color(0, 255, 0);
+                var blueColor = new Color(0, 0, 255);
+                float posX = player.X + 400;
+
+                player.SendData(PacketTypes.CreateCombatTextExtended, texts[0], (int)orangeColor.PackedValue, posX, player.Y + 12);
+                player.SendData(PacketTypes.CreateCombatTextExtended, texts[1], (int)greenColor.PackedValue, posX, player.Y + 32);
+                player.SendData(PacketTypes.CreateCombatTextExtended, texts[2], (int)blueColor.PackedValue, posX, player.Y + 52);
+                return;
+            }
+            else
+            {
+                position.Y -= 48f;
+                player.SendData(PacketTypes.CreateCombatTextExtended, texts[3], (int)Color.Blue.PackedValue, position.X, position.Y);
+                return;
+            } 
+
         }
+    }
+
+    public class NpcInteraction
+    {
+        public HashSet<string> HitPlayers { get; set; } = new HashSet<string>();
+        public Dictionary<string, int> DamageByPlayers { get; set; } = new Dictionary<string, int>();
+        public Dictionary<string, DateTime> HitTimes { get; set; } = new Dictionary<string, DateTime>();
     }
 }
