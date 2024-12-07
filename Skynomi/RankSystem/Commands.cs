@@ -67,7 +67,7 @@ namespace Skynomi.RankSystem
 
                         if (balance < rankCost)
                         {
-                            args.Player.SendErrorMessage($"Your balance is not enough to level up. ({Skynomi.Utils.Util.CurrencyFormat(rankCost)} more)");
+                            args.Player.SendErrorMessage($"Your balance is not enough to level up. ({Skynomi.Utils.Util.CurrencyFormat((int)(rankCost-balance))} more)");
                             return;
                         }
                         // Give Player Rewards
