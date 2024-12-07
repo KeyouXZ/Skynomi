@@ -12,5 +12,7 @@
         public static readonly string AdminBalance = "skynomi.admin.balance";
 
         public static readonly string Rank = "skynomi.rank";
+        public static readonly string RankUp = "skynomi.rank.up";
+        public static readonly string RankDown = "skynomi.rank.down";
     }
 }

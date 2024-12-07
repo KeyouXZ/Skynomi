@@ -6,10 +6,14 @@
 
 ## Features
 
-- Players can check their balance using a simple command.
-- Allows players to send money to other players via the `pay` command.
-- Virtual currency system that integrates smoothly with TShock.
-- Simple shop system with broadcasting system
+- **Economy System**: Virtual currency for transactions between players.
+- **Shop System**: Players can purchase items using in-game currency.
+- **Rank Progression**: Players can rank up or down, unlocking perks.
+- **Admin Controls**: Easily manage player balances and settings.
+- **Custom Rewards**: Configure rewards for killing NPCs or bosses.
+- **Customizable Themes**: Toggle between simple and detailed UI for commands.
+- **Optional Death Penalties**: Adjustable currency loss on player death.
+- **Broadcast System**: Automated announcements for shop items.
 
 ## Commands
 
@@ -86,17 +90,33 @@ This command will show a list of all items that can be bought, along with their 
 /admin setbal Keyou -500
 ```
 
+### `/rank up`
+**Description**: Rank up to the next level
+
+**Usage**:
+`/rank up`
+
+### `/rank down`
+**Description**: Rank down to the previous level
+
+**Usage**:
+`/rank up`
+
 ## Permissions
 
-To use the Skynomi commands, players must have the appropriate permissions set up in the server.
+Set up the following permissions to control access to the plugin features:
 
-- **`balance` permission**: `skynomi.balance`
-- **`pay` permission**: `skynomi.pay`
-- **`shop` permission**: `skynomi.shop`
-- **`shop buy` permission**: `skynomi.shop.buy`
-- **`shop list` permission**: `skynomi.shop.list`
-- **`admin` permission**: `skynomi.admin`
-- **`admin setball` permission**: `skynomi.admin.balance`
+| **Command**        | **Permission**            |
+|--------------------|---------------------------|
+| `/balance`         | `skynomi.balance`         |
+| `/pay`             | `skynomi.pay`             |
+| `/shop list`       | `skynomi.shop.list`       |
+| `/shop buy`        | `skynomi.shop.buy`        |
+| `/admin setbal`    | `skynomi.admin.balance`   |
+| `/rank up`         | `skynomi.rank.up`         |
+| `/rank down`       | `skynomi.rank.down`       |
+
+---
 
 
 ## Installation
@@ -104,25 +124,74 @@ To use the Skynomi commands, players must have the appropriate permissions set u
 1. Download the latest version of **Skynomi**.
 2. Place the `.dll` file in your server's `TShock/ServerPlugins` folder.
 3. Restart your server to load the plugin.
-4. Configure the plugin by editing the `Skynomi.json` file in the `tshock/` folder.
+4. Configure the plugin by editing the `Skynomi.json`, `Rank.json`, `Shop.json` file in the `tshock/Skynomi` folder.
 
 ## Configuration
 
 In the `Skynomi.json` configuration file, you can set various options such as:
 - Currency symbol and format
+- Reward chance
+- Theme: Simple & Detailed (not case sensitive)
+- Boss & NPC base reward
+- Drop on death (0 to disable)
+- Reward from statue & friendly NPC
+
+**Example:**
+```json
+{
+  "Currency": "Skyorb",
+  "Currency Format": "{currency} {amount}",
+  "Reward Chance": 100,
+  "Theme": "Simple",
+  "Theme List": "Simple & Detailed",
+  "Boss Reward": "{hp}/4*0.5",
+  "NPC Reward": "{hp}/4*1.2",
+  "Drop on Death": 0.5,
+  "Reward From Statue": false,
+  "Reward From Friendly NPC": false
+}
+```
+
+In the `Shop.json` configuration file, you can set various options such as:
 - Shop auto broadcast & the interval if enable
 - Shop Items
 
 **Example:**
 ```json
 {
-  "Currency": "Skyorb",
   "Auto Broadcast Shop": false,
   "Broadcast Interval in Seconds": 60,
   "Shop Items": {
     "1": 100,
     "2": 200,
     "3": 300
+  }
+}
+```
+
+In the `Rank.json` configuration file, you can set various options such as:
+- Rank name
+- Rank cost
+- Rank reward
+
+**Example:**
+```json
+{
+  "Ranks": {
+    "Rank1": {
+      "Cost": 100,
+      "Reward": {
+        "1": 1,
+        "2": 2
+      }
+    },
+    "Rank2": {
+      "Cost": 200,
+      "Reward": {
+        "1": 1,
+        "2": 2
+      }
+    }
   }
 }
 ```
@@ -137,7 +206,13 @@ In the `Skynomi.json` configuration file, you can set various options such as:
 **Version 1.0.1**
 - Added `shop list` and `shop buy` commands
 - Added `admin setbal` command for admin
+- Added `rank`, `rank up`, `rank down` commands
+- Improve the economy system
+- Added rank system
 - Config file more readable
+- Added detailed configuration options for theme customization.
+- Bug fixes and optimizations.
+- Introduced rank system.
 
 ## License
 

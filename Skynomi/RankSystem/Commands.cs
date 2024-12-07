@@ -24,32 +24,11 @@ namespace Skynomi.RankSystem
             config = Skynomi.Config.Read();
         }
 
-        public static bool CheckIfLogin(CommandArgs args)
-        {
-            if (!args.Player.IsLoggedIn)
-            {
-                args.Player.SendErrorMessage(Skynomi.Utils.Messages.NotLogged);
-                return false;
-            }
-            return true;
-        }
-
-        public static bool CheckPermission(string perm, CommandArgs args)
-        {
-            if (!args.Player.HasPermission(perm))
-            {
-                args.Player.SendErrorMessage(Skynomi.Utils.Messages.PermissionError, TShockAPI.Commands.Specifier);
-                return false;
-            }
-
-            return true;
-        }
-
         public static void Rank(CommandArgs args)
         {
             try
             {
-                if (!CheckIfLogin(args)) return;
+                if (!Skynomi.Utils.Util.CheckIfLogin(args)) return;
 
                 string usage = "Usage: /rank <up/down>";
 
@@ -61,6 +40,8 @@ namespace Skynomi.RankSystem
 
                 if (args.Parameters[0] == "up")
                 {
+                    if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.RankUp, args)) return;
+
                     string prefix = Skynomi.Database.GetLevel(args.Player.Name);
 
                     Skynomi.RankSystem.Config.Rank rankDetails = null;
@@ -124,6 +105,8 @@ namespace Skynomi.RankSystem
                 }
                 else if (args.Parameters[0] == "down")
                 {
+                    if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.RankDown, args)) return;
+
                     string prefix = Skynomi.Database.GetLevel(args.Player.Name);
 
                     Skynomi.RankSystem.Config.Rank rankDetails = null;
