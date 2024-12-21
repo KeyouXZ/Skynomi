@@ -12,8 +12,6 @@ namespace Skynomi {
         public int RewardChance { get; set; } = 100;
         [JsonProperty("Theme")]
         public string Theme { get; set; } = "Simple";
-        [JsonProperty("Theme List")]
-        public string _ThemeList { get; set; } = "Simple & Detailed";
         [JsonProperty("Boss Reward")]
         public string BossReward { get; set; } = "{hp}/4*0.5";
         [JsonProperty("NPC Reward")]

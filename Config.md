@@ -30,13 +30,6 @@ This document details the configuration settings for the currency and reward sys
 | Default | "Simple" |
 | Valid Values | "Simple" or "Detailed" (not case sensitive) |
 
-### Theme List
-| Field | Value |
-|-------|--------|
-| Type | String |
-| Description | Available theme options |
-| Default | "Simple & Detailed" |
-
 ## Reward Settings
 
 ### Reward Chance
