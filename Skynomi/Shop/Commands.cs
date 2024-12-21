@@ -1,4 +1,5 @@
 ﻿using TShockAPI;
+using TShockAPI.DB;
 
 namespace Skynomi.ShopSystem
 {
@@ -7,12 +8,17 @@ namespace Skynomi.ShopSystem
         private static Skynomi.Config config;
         private static Skynomi.ShopSystem.Config shopConfig;
         private static Skynomi.Database.Database database = new Database.Database();
+
         public static void Initialize()
         {
             config = Skynomi.Config.Read();
             shopConfig = Skynomi.ShopSystem.Config.Read();
 
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Shop, Shop, "shop"));
+            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Shop, Shop, "shop")
+            {
+                AllowServer = false,
+                HelpText = "Shop commands:\nbuy <item> [amount] - Buy an item\nlist - List all items in the shop"
+            });
         }
 
         public static void Reload()
@@ -23,14 +29,22 @@ namespace Skynomi.ShopSystem
 
         public static void Shop(CommandArgs args)
         {
-            if (!Skynomi.Utils.Util.CheckIfLogin(args))
-                return;
-
             string shopUsage = "Usage: /shop <buy/list>";
             if (args.Parameters.Count == 0)
             {
                 args.Player.SendErrorMessage(shopUsage);
                 return;
+            }
+
+            // Check if the player is in the allowed region
+            if (shopConfig.ProtectedByRegion)
+            {
+                var region = TShock.Regions.GetRegionByName(shopConfig.ShopRegion);
+                if (region == null || !region.InArea((int)(args.Player.X / 16), (int)(args.Player.Y / 16)))
+                {
+                    args.Player.SendErrorMessage("You can only use the shop command in the shop region.");
+                    return;
+                }
             }
 
             if (args.Parameters[0] == "buy")

@@ -122,6 +122,23 @@ This document details the configuration settings for the shop system.
 | Unit | Seconds |
 | Minimum | 1 |
 
+### Protected by Region
+| Field | Value |
+|-------|--------|
+| Type | Boolean |
+| Description | Enable/disable the use of the /shop command outside the region |
+| Default | false |
+| Valid Values | true/false |
+
+### Shop Region
+
+| Field | Value |
+|-------|--------|
+| Type | String |
+| Description | Specifies the region where the shop is located. Only players within this region can use the shop commands |
+| Default | "ShopRegion" |
+| Example | "ShopRegion", "Shop" |
+
 ## Shop Items
 
 ### Shop Items Configuration

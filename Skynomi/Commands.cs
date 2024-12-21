@@ -2,16 +2,29 @@
 
 namespace Skynomi
 {
-    public class Commands {
+    public class Commands
+    {
         private static Config config;
         private static Skynomi.Database.Database database = new Database.Database();
         public static void Initialize()
         {
             config = Config.Read();
 
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.List, Pay, "pay"));
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Balance, Balance, "balance", "bal"));
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Admin, Admin, "admin"));
+            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.List, Pay, "pay")
+            {
+                AllowServer = false,
+                HelpText = "Allows a player to send currency to another player."
+            });
+            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Balance, Balance, "balance", "bal")
+            {
+                AllowServer = false,
+                HelpText = "Displays the player's current currency balance."
+            });
+            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Admin, Admin, "admin")
+            {
+                AllowServer = true,
+                HelpText = "Admin commands:\nsetbal <player> <amount> - Sets the balance of a player."
+            });
         }
 
         public static void Reload()
@@ -22,14 +35,11 @@ namespace Skynomi
         // Commands
         public static void Pay(CommandArgs args)
         {
-            // Login is required
-            if (!Skynomi.Utils.Util.CheckIfLogin(args))
-                return;
-
             if (args.Player == null)
                 return;
 
             string usage = "Usage: /pay <player> <amount>";
+
             // send usage message when only using /pay
             if (args.Parameters.Count == 0)
             {
@@ -88,10 +98,6 @@ namespace Skynomi
         {
             try
             {
-                // Login is required
-                if (!Skynomi.Utils.Util.CheckIfLogin(args))
-                    return;
-
                 if (args.Player == null)
                     return;
 
@@ -130,19 +136,19 @@ namespace Skynomi
         // Admin commands
         public static void Admin(CommandArgs args)
         {
-            string usage = $"setbal: Set user's {config.Currency} to a specific amount. Use - to reduce user currency";
+            string usage = $"setbal: Set player's {config.Currency} to a specific amount. Use - to reduce user currency";
 
             if (args.Parameters.Count == 0)
             {
                 args.Player.SendErrorMessage("Usage: /admin <command>");
-                args.Player.SendSuccessMessage("Command list:");
-                args.Player.SendErrorMessage(usage);
+                args.Player.SendInfoMessage("Command list:");
+                args.Player.SendInfoMessage(usage);
                 return;
             }
             else if (args.Parameters[0] == "setbal")
             {
                 if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.AdminBalance, args)) return;
-                string SetbalUsage = "Usage: /admin setbal <user> <amount>";
+                string SetbalUsage = "Usage: /admin setbal <player> <amount>";
 
                 if (args.Parameters.Count < 2)
                 {

@@ -82,6 +82,7 @@ namespace Skynomi
         private void OnPostInitialize(EventArgs args)
         {
             Skynomi.Database.Database.PostInitialize();
+            Skynomi.ShopSystem.Shop.PostInitialize();
         }
 
         private void OnNpcHit(NpcStrikeEventArgs args)

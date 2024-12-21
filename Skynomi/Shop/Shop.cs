@@ -32,6 +32,11 @@ namespace Skynomi.ShopSystem {
 
             Skynomi.ShopSystem.Commands.Reload();
 
+            if (shopConfig.ProtectedByRegion && string.IsNullOrEmpty(shopConfig.ShopRegion))
+            {
+                TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.EmptyNEnableProtectedRegion);
+            }
+
             if (shopConfig.AutoBroadcastShop && _List() != "No items available") {
                 TShock.Log.Warn(Skynomi.Utils.Messages.AutoShopDisabled);
                 broadcastTimer = new System.Timers.Timer(shopConfig.BroadcastIntervalInSeconds * 1000);
@@ -39,8 +44,16 @@ namespace Skynomi.ShopSystem {
                 broadcastTimer.AutoReset = true;
                 broadcastTimer.Start();
             }
-
         }
+
+        public static void PostInitialize()
+        {
+            if (shopConfig.ProtectedByRegion && string.IsNullOrEmpty(shopConfig.ShopRegion))
+            {
+                TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.EmptyNEnableProtectedRegion);
+            }
+        }
+
         public static string _List()
         {
             // shop list

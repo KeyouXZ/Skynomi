@@ -14,7 +14,11 @@ namespace Skynomi.RankSystem
             config = Skynomi.Config.Read();
 
             // Init Commands
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Rank, Rank, "rank", "level"));
+            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Rank, Rank, "rank", "level")
+            {
+                AllowServer = false,
+                HelpText = "Rank commands:\nup - Rank up to the next level\ndown - Rank down to the previous level"
+            });
         }
 
         public static void Reload()
@@ -27,8 +31,6 @@ namespace Skynomi.RankSystem
         {
             try
             {
-                if (!Skynomi.Utils.Util.CheckIfLogin(args)) return;
-
                 string usage = "Usage: /rank <up/down>";
 
                 if (args.Parameters.Count == 0)

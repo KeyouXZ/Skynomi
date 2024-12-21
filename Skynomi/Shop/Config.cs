@@ -7,8 +7,16 @@ namespace Skynomi.ShopSystem
     {
         [JsonProperty("Auto Broadcast Shop")]
         public bool AutoBroadcastShop { get; set; } = false;
+
         [JsonProperty("Broadcast Interval in Seconds")]
         public int BroadcastIntervalInSeconds { get; set; } = 60;
+
+        [JsonProperty("Protected by Region")]
+        public bool ProtectedByRegion { get; set; } = false;
+
+        [JsonProperty("Shop Region")]
+        public string ShopRegion { get; set; } = "ShopRegion";
+
         [JsonProperty("Shop Items")]
         public Dictionary<string, Int32> ShopItems { get; set; } = new Dictionary<string, Int32>();
 
