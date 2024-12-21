@@ -5,6 +5,8 @@ namespace Skynomi.RankSystem
 {
     public class Config
     {
+        [JsonProperty("Recreate Groups When Server Start")]
+        public bool recreateInStart { get; set; } = false;
         public Dictionary<string, Rank> Ranks { get; set; } = new Dictionary<string, Rank>();
 
         public static Config Read()
@@ -22,7 +24,7 @@ namespace Skynomi.RankSystem
                 {
                     File.WriteAllText(configPath, JsonConvert.SerializeObject(defaultConfig, Formatting.Indented));
                 }
-                config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
+                config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath)) ?? new Config();
 
                 return config;
             }

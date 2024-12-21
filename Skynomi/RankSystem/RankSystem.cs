@@ -1,21 +1,17 @@
-using TerrariaApi.Server;
 using TShockAPI;
-using Newtonsoft.Json.Linq;
 
 namespace Skynomi.RankSystem
 {
     public class Ranks
     {
         private static Skynomi.RankSystem.Config rankConfig;
-        private static string commandSpecifier = "/";
-        private static string commandSilentSpecifier = ".";
 
         public static void Initialize()
         {
             //LoadCommandSpecifiers();
             rankConfig = Skynomi.RankSystem.Config.Read();
             Skynomi.RankSystem.Commands.Initialize();
-            CreateGroup();
+            CreateGroup(1);
         }
 
         public static void Reload()
@@ -23,9 +19,10 @@ namespace Skynomi.RankSystem
             //LoadCommandSpecifiers();
             rankConfig = Skynomi.RankSystem.Config.Read();
             Skynomi.RankSystem.Commands.Reload();
+            CreateGroup(2);
         }
 
-        public static void CreateGroup()
+        public static void CreateGroup(int status)
         {
             int counter = 1;
             if (rankConfig == null || rankConfig.Ranks == null)
@@ -42,14 +39,24 @@ namespace Skynomi.RankSystem
                 string parent = (counter == 1) ? "default" : "rank_" + (counter-1).ToString();
                 int[] color = key.Value.ChatColor;
                 string chatColor = $"{color[0]},{color[1]},{color[2]}";
-               
 
                 counter++;
 
-                if (!TShock.Groups.GroupExists(name))
+                // Create the group
+                if (status == 1)
                 {
-                    // Create the group
-                    TShock.Groups.AddGroup(name, parent, TShock.Groups.GetGroupByName(parent).Permissions, "255,255,255");
+                    if (rankConfig.recreateInStart)
+                    {
+                        if (TShock.Groups.GroupExists(name))
+                        {
+                            TShock.Groups.DeleteGroup(name);
+                        }
+                        TShock.Groups.AddGroup(name, parent, TShock.Groups.GetGroupByName(parent).Permissions, "255,255,255");
+                    }
+                    else if (!TShock.Groups.GroupExists(name))
+                    {
+                        TShock.Groups.AddGroup(name, parent, TShock.Groups.GetGroupByName(parent).Permissions, "255,255,255");
+                    }
                 }
                 
                 // Assign prefix and suffix
@@ -59,10 +66,6 @@ namespace Skynomi.RankSystem
                     group.Prefix = prefix;
                     group.Suffix = suffix;
                     group.ChatColor = chatColor;
-                }
-                else
-                {
-                    TShock.Log.ConsoleError("Failed to find group " + name + " after creation. Prefix and suffix were not applied.");
                 }
             }
         }

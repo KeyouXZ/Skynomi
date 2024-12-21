@@ -36,7 +36,7 @@ namespace Skynomi {
 				if (!File.Exists(configPath)) {
 					File.WriteAllText(configPath, JsonConvert.SerializeObject(config, Formatting.Indented));
 				}
-				config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
+				config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath)) ?? new Config();
 
 				return config;
 			}

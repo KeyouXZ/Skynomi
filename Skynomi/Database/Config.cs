@@ -1,21 +1,32 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using TShockAPI;
 
-namespace Skynomi.ShopSystem
+namespace Skynomi.Database
 {
     public class Config
     {
-        [JsonProperty("Auto Broadcast Shop")]
-        public bool AutoBroadcastShop { get; set; } = false;
-        [JsonProperty("Broadcast Interval in Seconds")]
-        public int BroadcastIntervalInSeconds { get; set; } = 60;
-        [JsonProperty("Shop Items")]
-        public Dictionary<string, Int32> ShopItems { get; set; } = new Dictionary<string, Int32>();
+        [JsonProperty("Database Type")]
+        public string databaseType { get; set; } = "sqlite";
+
+        [JsonProperty("SQLite Database Path")]
+        public string databasePath { get; set; } = "Skynomi.sqlite3";
+
+        [JsonProperty("MySqlHost")]
+        public string MySqlHost { get; set; } = "localhost:3306";
+        
+        [JsonProperty("MySqlDbName")]
+        public string MySqlDbName { get; set; } = "";
+
+        [JsonProperty("MySqlUsername")]
+        public string MySqlUsername { get; set; } = "";
+
+        [JsonProperty("MySqlPassword")]
+        public string MySqlPassword { get; set; } = "";
 
         public static Config Read()
         {
             string directoryPath = Path.Combine(TShock.SavePath, "Skynomi");
-            string configPath = Path.Combine(directoryPath, "Shop.json");
+            string configPath = Path.Combine(directoryPath, "Database.json");
             Directory.CreateDirectory(directoryPath);
 
             try

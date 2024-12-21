@@ -6,6 +6,7 @@ namespace Skynomi.ShopSystem
     {
         private static Skynomi.Config config;
         private static Skynomi.ShopSystem.Config shopConfig;
+        private static Skynomi.Database.Database database = new Database.Database();
         public static void Initialize()
         {
             config = Skynomi.Config.Read();
@@ -81,7 +82,7 @@ namespace Skynomi.ShopSystem
                     }
 
                     // check balance
-                    decimal balance = Skynomi.Database.GetBalance(args.Player.Name);
+                    decimal balance = database.GetBalance(args.Player.Name);
                     int itemId = int.Parse(itemKey);
 
                     if (TShock.Utils.GetItemById(int.Parse(itemKey)).maxStack == 1)
@@ -102,7 +103,7 @@ namespace Skynomi.ShopSystem
 
                     args.Player.SendInfoMessage($"You have bought [i/s{itemAmount}:{args.Parameters[1]}]");
                     args.Player.GiveItem(itemId, itemAmount);
-                    Skynomi.Database.RemoveBalance(args.Player.Name, (int)itemValue);
+                    database.RemoveBalance(args.Player.Name, (int)itemValue);
 
                 }
                 catch (Exception ex)

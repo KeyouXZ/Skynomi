@@ -4,6 +4,7 @@ namespace Skynomi
 {
     public class Commands {
         private static Config config;
+        private static Skynomi.Database.Database database = new Database.Database();
         public static void Initialize()
         {
             config = Config.Read();
@@ -53,8 +54,8 @@ namespace Skynomi
                 return;
             }
 
-            decimal balancePlayer = Skynomi.Database.GetBalance(args.Player.Name);
-            decimal balanceTarget = Skynomi.Database.GetBalance(targetPlayer.Name);
+            decimal balancePlayer = database.GetBalance(args.Player.Name);
+            decimal balanceTarget = database.GetBalance(targetPlayer.Name);
 
 
             // Check if the player has enough balance to pay
@@ -76,8 +77,8 @@ namespace Skynomi
                 return;
             }
 
-            Skynomi.Database.RemoveBalance(args.Player.Name, amount);
-            Skynomi.Database.AddBalance(targetPlayer.Name, amount);
+            database.RemoveBalance(args.Player.Name, amount);
+            database.AddBalance(targetPlayer.Name, amount);
 
             args.Player.SendInfoMessage($"You have paid {Skynomi.Utils.Util.CurrencyFormat(amount)} to {targetPlayer.Name}.");
             targetPlayer.SendInfoMessage($"You have received {Skynomi.Utils.Util.CurrencyFormat(amount)} from {args.Player.Name}.");
@@ -106,7 +107,7 @@ namespace Skynomi
                     return;
                 }
 
-                decimal balance = Skynomi.Database.GetBalance(targetPlayer.Name);
+                decimal balance = database.GetBalance(targetPlayer.Name);
 
                 if (args.Parameters.Count == 0)
                 {
@@ -161,7 +162,7 @@ namespace Skynomi
                     return;
                 }
 
-                decimal balanceTarget = Skynomi.Database.GetBalance(targetPlayer.Name);
+                decimal balanceTarget = database.GetBalance(targetPlayer.Name);
 
                 if (!int.TryParse(args.Parameters[2], out int amount))
                 {
@@ -169,7 +170,7 @@ namespace Skynomi
                     return;
                 }
 
-                Skynomi.Database.AddBalance(targetPlayer.Name, (int)amount);
+                database.AddBalance(targetPlayer.Name, (int)amount);
                 args.Player.SendSuccessMessage($"Successfully gave {Skynomi.Utils.Util.CurrencyFormat(amount)} to {targetUsername}");
             }
             else

@@ -14,12 +14,10 @@ namespace Skynomi
         public override string Author => "Keyou";
         public override string Description => "Terraria Economy System";
         public override string Name => "Skynomi";
-        public override Version Version => new Version(1, 0, 1);
+        public override Version Version => new Version(1, 0, 2);
 
         private Skynomi.Config config;
-        private Skynomi.ShopSystem.Shop shop;
-        private SqliteConnection _connection;
-        private Skynomi.RankSystem.Ranks ranks;
+        private Skynomi.Database.Database database;
 
         private Dictionary<int, NpcInteraction> npcInteractions = new Dictionary<int, NpcInteraction>();
 
@@ -31,6 +29,7 @@ namespace Skynomi
         {
             // This
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
+            ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
             ServerApi.Hooks.NpcKilled.Register(this, OnNpcKilled);
             ServerApi.Hooks.NpcStrike.Register(this, OnNpcHit);
             GeneralHooks.ReloadEvent += Reload;
@@ -51,8 +50,8 @@ namespace Skynomi
                 ServerApi.Hooks.NpcStrike.Deregister(this, OnNpcHit);
                 GeneralHooks.ReloadEvent -= Reload;
                 GetDataHandlers.KillMe -= PlayerDead;
-
-                _connection?.Close();
+                
+                Skynomi.Database.Database.Close();
             }
             base.Dispose(disposing);
         }
@@ -61,6 +60,12 @@ namespace Skynomi
         {
             args.Player.SendSuccessMessage(Skynomi.Utils.Messages.Reload);
             config = Config.Read();
+
+            database = new Skynomi.Database.Database();
+            database.InitializeDatabase();
+
+            Skynomi.Database.Database.PostInitialize();
+            
             Skynomi.ShopSystem.Shop.Reload();
             Skynomi.Commands.Reload();
             Skynomi.RankSystem.Ranks.Reload();
@@ -70,7 +75,13 @@ namespace Skynomi
         private void OnInitialize(EventArgs args)
         {
             config = Config.Read();
-            Skynomi.Database.InitializeDatabase();
+            database = new Skynomi.Database.Database();
+            database.InitializeDatabase();
+        }
+
+        private void OnPostInitialize(EventArgs args)
+        {
+            Skynomi.Database.Database.PostInitialize();
         }
 
         private void OnNpcHit(NpcStrikeEventArgs args)
@@ -149,7 +160,7 @@ namespace Skynomi
                     {
                         if (playerReward > 0)
                         {
-                            Skynomi.Database.AddBalance(player.Name, playerReward);
+                            database.AddBalance(player.Name, playerReward);
                             ShowFloatingText(player, new string[] { "[Skynomi]", $"+ {Skynomi.Utils.Util.CurrencyFormat(playerReward)}", $"From: {NPC.GetFullnameByID(args.npc.netID)}", $"+ {Skynomi.Utils.Util.CurrencyFormat(playerReward)}" });
                         }
                     }
@@ -169,9 +180,9 @@ namespace Skynomi
             if (args.Player.IsLoggedIn && config.DropOnDeath > 0)
             {
 
-                decimal playerBalance = Skynomi.Database.GetBalance(args.Player.Name);
+                decimal playerBalance = database.GetBalance(args.Player.Name);
                 var toLose = (int)(playerBalance * (config.DropOnDeath / 100));
-                Skynomi.Database.RemoveBalance(args.Player.Name, toLose);
+                database.RemoveBalance(args.Player.Name, toLose);
                 args.Player.SendMessage($"You lost {Skynomi.Utils.Util.CurrencyFormat(toLose)} from dying!", Color.Orange);
                 return;
             }
