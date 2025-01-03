@@ -5,8 +5,8 @@ namespace Skynomi.RankSystem
 {
     public class Config
     {
-        [JsonProperty("Recreate Groups When Server Start")]
-        public bool recreateInStart { get; set; } = false;
+        [JsonProperty("Use Parent for Rank")]
+        public bool useParent { get; set; } = true;
         public Dictionary<string, Rank> Ranks { get; set; } = new Dictionary<string, Rank>();
 
         public static Config Read()
@@ -46,6 +46,7 @@ namespace Skynomi.RankSystem
                 Suffix = "[i:4444]",
                 ChatColor = new int[] { 255, 255, 255 },
                 Cost = 100,
+                Permission = "tshock.item.spawn",
                 Rewards = new Dictionary<string, int>
                 {
                     { "1", 1 },
@@ -59,6 +60,7 @@ namespace Skynomi.RankSystem
                 Suffix = "[i:4444]",
                 ChatColor = new int[] { 255, 255, 255 },
                 Cost = 200,
+                Permission = "tshock.item.give tshock.item.spawn",
                 Rewards = new Dictionary<string, int>
                     {
                         { "1", 1 },
@@ -82,6 +84,9 @@ namespace Skynomi.RankSystem
 
             [JsonProperty("Cost")]
             public int Cost = 0;
+
+            [JsonProperty("Permission")]
+            public string Permission = string.Empty;
 
             [JsonProperty("Reward")]
             public Dictionary<string, int> Rewards = new Dictionary<string, int>();

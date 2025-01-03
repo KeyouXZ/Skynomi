@@ -1,3 +1,4 @@
+using IL.Terraria.GameContent.RGB;
 using TShockAPI;
 
 namespace Skynomi.RankSystem
@@ -8,7 +9,6 @@ namespace Skynomi.RankSystem
 
         public static void Initialize()
         {
-            //LoadCommandSpecifiers();
             rankConfig = Skynomi.RankSystem.Config.Read();
             Skynomi.RankSystem.Commands.Initialize();
             CreateGroup(1);
@@ -16,10 +16,15 @@ namespace Skynomi.RankSystem
 
         public static void Reload()
         {
-            //LoadCommandSpecifiers();
+            bool tempConf = rankConfig.useParent;
             rankConfig = Skynomi.RankSystem.Config.Read();
             Skynomi.RankSystem.Commands.Reload();
             CreateGroup(2);
+
+            if (tempConf != rankConfig.useParent)
+            {
+                TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.ParentSettingChanged);
+            }
         }
 
         public static void CreateGroup(int status)
@@ -36,29 +41,23 @@ namespace Skynomi.RankSystem
                 string name = "rank_" + counter;
                 string prefix = key.Value.Prefix ?? "";
                 string suffix = key.Value.Suffix ?? "";
-                string parent = (counter == 1) ? "default" : "rank_" + (counter-1).ToString();
+                string parent = (counter == 1) ? "default" : "rank_" + (counter - 1).ToString();
+                if (!rankConfig.useParent) parent = "";
+
                 int[] color = key.Value.ChatColor;
                 string chatColor = $"{color[0]},{color[1]},{color[2]}";
-
-                counter++;
+                string permission = key.Value.Permission.Replace(" ", ",") ?? "";
 
                 // Create the group
                 if (status == 1)
                 {
-                    if (rankConfig.recreateInStart)
+                    if (TShock.Groups.GroupExists(name))
                     {
-                        if (TShock.Groups.GroupExists(name))
-                        {
-                            TShock.Groups.DeleteGroup(name);
-                        }
-                        TShock.Groups.AddGroup(name, parent, TShock.Groups.GetGroupByName(parent).Permissions, "255,255,255");
+                        TShock.Groups.DeleteGroup(name);
                     }
-                    else if (!TShock.Groups.GroupExists(name))
-                    {
-                        TShock.Groups.AddGroup(name, parent, TShock.Groups.GetGroupByName(parent).Permissions, "255,255,255");
-                    }
+                    TShock.Groups.AddGroup(name, parent, TShock.Groups.GetGroupByName(parent != "" ? parent : "default").Permissions, "255,255,255");
                 }
-                
+
                 // Assign prefix and suffix
                 var group = TShock.Groups.GetGroupByName(name);
                 if (group != null)
@@ -66,7 +65,30 @@ namespace Skynomi.RankSystem
                     group.Prefix = prefix;
                     group.Suffix = suffix;
                     group.ChatColor = chatColor;
+
+                    // Remove Permissions
+                    if (parent == "")
+                    {
+                        var parentGroup = TShock.Groups.GetGroupByName("default");
+
+                        string topermission = parentGroup.Permissions;
+                        if (!string.IsNullOrEmpty(permission))
+                        {
+                            topermission += "," + permission;
+                        }
+
+                        group.Permissions = topermission;
+                    }
+                    else if (rankConfig.useParent)
+                    {
+                        if (!string.IsNullOrEmpty(permission))
+                        {
+                            group.Permissions = permission;
+                        }
+                    }
                 }
+
+                counter++;
             }
         }
     }

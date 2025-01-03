@@ -190,15 +190,28 @@ The rank configuration uses a hierarchical structure where each rank defines its
 
 ### Base Structure
 ```json
+"Use Parent for Rank": true,
 "Ranks": {
     "rankName": {
+        "Prefix": string,
+        "Suffix": string,
+        "Chat Color": [number, number, number],
         "Cost": number,
+        "Permission": string,
         "Reward": {
             "itemID": quantity
         }
     }
 }
 ```
+
+### Use Parent for Rank
+| Field | Value |
+|-------|--------|
+| Type | Boolean |
+| Description | Determines if the rank should inherit properties from a parent rank |
+| Default | true |
+| Valid Values | true/false |
 
 ### Fields Description
 
@@ -209,12 +222,40 @@ The rank configuration uses a hierarchical structure where each rank defines its
 | Usage | Unique identifier for each rank |
 | Example | "Rank1", "Rank2" |
 
+#### Prefix
+| Field | Description |
+|-------|-------------|
+| Type | String |
+| Description | Text displayed before the player's name |
+| Example | "[VIP]" |
+
+#### Suffix
+| Field | Description |
+|-------|-------------|
+| Type | String |
+| Description | Text displayed after the player's name |
+| Example | "[Hero]" |
+
+#### Chat Color
+| Field | Description |
+|-------|-------------|
+| Type | Array of Numbers |
+| Description | RGB values defining the chat color for the rank |
+| Example | [255, 0, 0] for red |
+
 #### Cost
 | Field | Description |
 |-------|-------------|
 | Type | Number |
 | Description | Amount of currency required to obtain the rank |
 | Must be | Positive number |
+
+#### Permission
+| Field | Description |
+|-------|-------------|
+| Type | String |
+| Description | Permission string associated with the rank |
+| Example | "rank.vip" |
 
 #### Rewards
 | Field | Description |
@@ -226,20 +267,37 @@ The rank configuration uses a hierarchical structure where each rank defines its
 ## Example Configuration
 ```json
 {
+  "Use Parent for Rank": true,
   "Ranks": {
     "Rank1": {
-      "Cost": 100,
+      "Prefix": "[i:4444] [c/FFFFFF:Adventurer] ",
+      "Suffix": "",
+      "Chat Color": [
+        255,
+        255,
+        255
+      ],
+      "Cost": 1000,
+      "Permission": "adventurer a.openchest",
       "Reward": {
         "1": 1,
         "2": 2
       }
     },
     "Rank2": {
-      "Cost": 200,
+      "Prefix": "[i:2751] [c/4B73F6:Traveler] ",
+      "Suffix": "",
+      "Chat Color": [
+        121,
+        152,
+        253
+      ],
+      "Cost": 5000,
+      "Permission": "traveler",
       "Reward": {
         "1": 1,
         "2": 2
-      }
+      },
     }
   }
 }
@@ -253,6 +311,11 @@ The rank configuration uses a hierarchical structure where each rank defines its
 - Multiple rewards can be specified for each rank
 - Ranks are typically processed in order
 - Higher ranks typically have better reward ratios
+
+## Important Note
+- A server restart is required after modifying the `Use Parent for Rank` setting to ensure changes take effect.
+- Always backup your configuration files before making changes.
+- Test the configuration in a development environment if possible.
 
 ## Best Practices
 1. Use descriptive rank names

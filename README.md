@@ -153,6 +153,8 @@ See [Config Document](./Config.md) for this
 **Version 1.0.2**
 - Added support for MySQL database
 - Added fallback mechanism for MySQL
+- Added wiki for all configuration files.
+- Added `Ranks->{Name}->Permission` and `Use Parent for Rank` as configuration options in the rank system.
 
 ## License
 
