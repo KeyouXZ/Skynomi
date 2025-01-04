@@ -27,11 +27,14 @@ namespace Skynomi
 
         public override void Initialize()
         {
-            // This
-            ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
+            config = Config.Read();
+            database = new Skynomi.Database.Database();
+            database.InitializeDatabase();
+
             ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
             ServerApi.Hooks.NpcKilled.Register(this, OnNpcKilled);
             ServerApi.Hooks.NpcStrike.Register(this, OnNpcHit);
+            ServerApi.Hooks.NetGreetPlayer.Register(this, OnPlayerJoin);
             GeneralHooks.ReloadEvent += Reload;
             GetDataHandlers.KillMe += PlayerDead;
 
@@ -45,7 +48,6 @@ namespace Skynomi
         {
             if (disposing)
             {
-                ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
                 ServerApi.Hooks.NpcKilled.Deregister(this, OnNpcKilled);
                 ServerApi.Hooks.NpcStrike.Deregister(this, OnNpcHit);
                 GeneralHooks.ReloadEvent -= Reload;
@@ -58,11 +60,7 @@ namespace Skynomi
 
         public void Reload(ReloadEventArgs args)
         {
-            args.Player.SendSuccessMessage(Skynomi.Utils.Messages.Reload);
             config = Config.Read();
-
-            database = new Skynomi.Database.Database();
-            database.InitializeDatabase();
 
             Skynomi.Database.Database.Close();
             database = new Skynomi.Database.Database();
@@ -73,19 +71,19 @@ namespace Skynomi
             Skynomi.Commands.Reload();
             Skynomi.RankSystem.Ranks.Reload();
             Skynomi.Utils.Util.Reload();
-        }
 
-        private void OnInitialize(EventArgs args)
-        {
-            config = Config.Read();
-            database = new Skynomi.Database.Database();
-            database.InitializeDatabase();
+            args.Player.SendSuccessMessage(Skynomi.Utils.Messages.Reload);
         }
 
         private void OnPostInitialize(EventArgs args)
         {
             Skynomi.Database.Database.PostInitialize();
             Skynomi.ShopSystem.Shop.PostInitialize();
+        }
+
+        private void OnPlayerJoin(GreetPlayerEventArgs args)
+        {
+            database.CreatePlayer(TShock.Players[args.Who].Name);
         }
 
         private void OnNpcHit(NpcStrikeEventArgs args)

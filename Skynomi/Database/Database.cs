@@ -29,6 +29,8 @@ namespace Skynomi.Database
                 else
                 {
                     InitializeSqlite();
+                    isFallback = true;
+                    _databaseType = "sqlite";
                 }
 
                 CreateTables();
@@ -64,24 +66,47 @@ namespace Skynomi.Database
         {
             using (var cmd = CreateCommand())
             {
-                cmd.CommandText = @"
-                    CREATE TABLE IF NOT EXISTS Accounts (
-                        Id INT AUTO_INCREMENT PRIMARY KEY,
-                        Username VARCHAR(255) UNIQUE NOT NULL,
-                        Balance DECIMAL(10, 2) NOT NULL DEFAULT 0
-                    )";
-                cmd.ExecuteNonQuery();
+                if (_databaseType == "mysql")
+                {
+                    cmd.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Accounts (
+                            Id INT AUTO_INCREMENT PRIMARY KEY,
+                            Username VARCHAR(255) UNIQUE NOT NULL,
+                            Balance DECIMAL(10, 2) NOT NULL DEFAULT 0
+                        )";
+                    cmd.ExecuteNonQuery();
 
-                cmd.CommandText = @"
-                    CREATE TABLE IF NOT EXISTS Ranks (
-                        Id INT AUTO_INCREMENT PRIMARY KEY,
-                        Username VARCHAR(255) UNIQUE NOT NULL,
-                        Rank INT NOT NULL DEFAULT 0,
-                        HighestRank INT NOT NULL DEFAULT 0
-                    )";
-                cmd.ExecuteNonQuery();
+                    cmd.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Ranks (
+                            Id INT AUTO_INCREMENT PRIMARY KEY,
+                            Username VARCHAR(255) UNIQUE NOT NULL,
+                            Rank INT NOT NULL DEFAULT 0,
+                            HighestRank INT NOT NULL DEFAULT 0
+                        )";
+                    cmd.ExecuteNonQuery();
+                }
+                else if (_databaseType == "sqlite")
+                {
+                    cmd.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Accounts (
+                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Username TEXT UNIQUE NOT NULL,
+                            Balance DECIMAL(10, 2) NOT NULL DEFAULT 0
+                        )";
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Ranks (
+                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Username TEXT UNIQUE NOT NULL,
+                            Rank INTEGER NOT NULL DEFAULT 0,
+                            HighestRank INTEGER NOT NULL DEFAULT 0
+                        )";
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
+
 
         public static void Close()
         {
@@ -125,6 +150,27 @@ namespace Skynomi.Database
                 return ((SqliteConnection)_connection).CreateCommand();
             }
         }
+
+        public void CreatePlayer(string username)
+        {
+            using (var cmd = CreateCommand())
+            {
+                // Create Account
+                cmd.CommandText = "INSERT OR IGNORE INTO Accounts (Username, Balance) VALUES (@Username, 0)";
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@Username", username);
+                cmd.ExecuteNonQuery();
+
+                // Create Rank
+                cmd.CommandText = "INSERT OR IGNORE INTO Ranks (Username, Rank) VALUES (@Username, 0)";
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@Username", username);
+                cmd.ExecuteNonQuery();
+
+                return;
+            }
+        }
+
 
         public decimal GetBalance(string username)
         {
