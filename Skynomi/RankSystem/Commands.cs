@@ -75,11 +75,13 @@ namespace Skynomi.RankSystem
                         }
 
                         // Set the Highest Level
-                        database.CustomVoid(@$"
-                            INSERT INTO Ranks (Username, HighestRank)
-                            Values (@Username, @HighestRank)
-                            ON CONFLICT(Username) DO UPDATE SET HighestRank = @HighestRank
-                        ", new
+                        string databaseCommandText = "INSERT INTO Ranks (Username, HighestRank) Values (@Username, @HighestRank) ";
+                        if (Skynomi.Database.Database._databaseType == "mysql") {
+                            databaseCommandText += "ON DUPLICATE KEY UPDATE HighestRank = @HighestRank";
+                        } else if (Skynomi.Database.Database._databaseType == "sqlite") {
+                            databaseCommandText += "ON CONFLICT(Username) DO UPDATE SET HighestRank = @HighestRank";
+                        }
+                        database.CustomVoid(databaseCommandText, new
                         {
                             Username = args.Player.Name,
                             HighestRank = (rank+1)

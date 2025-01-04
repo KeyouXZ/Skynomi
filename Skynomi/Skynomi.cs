@@ -64,6 +64,9 @@ namespace Skynomi
             database = new Skynomi.Database.Database();
             database.InitializeDatabase();
 
+            Skynomi.Database.Database.Close();
+            database = new Skynomi.Database.Database();
+            database.InitializeDatabase();
             Skynomi.Database.Database.PostInitialize();
             
             Skynomi.ShopSystem.Shop.Reload();

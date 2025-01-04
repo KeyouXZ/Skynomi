@@ -7,7 +7,7 @@ namespace Skynomi.Database
     public class Database
     {
         private static object _connection;
-        private static string _databaseType;
+        public static string _databaseType;
         private static Skynomi.Database.Config _config;
         private static bool isFallback = false;
 
@@ -20,7 +20,9 @@ namespace Skynomi.Database
             {
                 if (_databaseType == "mysql")
                 {
-                    string connectionString = $"Server={_config.MySqlHost};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};";
+                    string MysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
+                    string MysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
+                    string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};";
                     _connection = new MySqlConnection(connectionString);
                     ((MySqlConnection)_connection).Open();
                 }
@@ -99,12 +101,14 @@ namespace Skynomi.Database
             {
                 TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.UnsupportedDatabaseType);
             }
-            else if (isFallback)
+
+            if (isFallback)
             {
                 TShock.Log.ConsoleInfo(Skynomi.Utils.Messages.FallBack);
-
+                _databaseType = "sqlite";
             }
-            else if (TShock.Config.Settings.StorageType.ToLower() != _databaseType.ToLower())
+
+            if (TShock.Config.Settings.StorageType.ToLower() != _databaseType.ToLower())
             {
                 TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.DifferenctDatabaseType);
             }
@@ -149,8 +153,20 @@ namespace Skynomi.Database
             {
                 cmd.CommandText = @"
                     INSERT INTO Accounts (Username, Balance)
-                    VALUES (@Username, @Amount)
-                    ON CONFLICT(Username) DO UPDATE SET Balance = Balance + @Amount";
+                    VALUES (@Username, @Amount)";
+
+                if (_databaseType == "mysql")
+                {
+                    cmd.CommandText += @"
+                        ON DUPLICATE KEY UPDATE Balance = Balance + @Amount";
+                }
+                else if (_databaseType == "sqlite")
+                {
+                    cmd.CommandText += @"
+                        ON CONFLICT(Username) DO UPDATE SET Balance = Balance + @Amount";
+                }
+
+
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.Parameters.AddWithValue("@Amount", amount);
                 cmd.ExecuteNonQuery();
@@ -163,8 +179,19 @@ namespace Skynomi.Database
             {
                 cmd.CommandText = @"
                     INSERT INTO Accounts (Username, Balance)
-                    VALUES (@Username, @Amount)
-                    ON CONFLICT(Username) DO UPDATE SET Balance = Balance - @Amount";
+                    VALUES (@Username, @Amount)";
+
+                if (_databaseType == "mysql")
+                {
+                    cmd.CommandText += @"
+                        ON DUPLICATE KEY UPDATE Balance = Balance - @Amount";
+                }
+                else if (_databaseType == "sqlite")
+                {
+                    cmd.CommandText += @"
+                        ON CONFLICT(Username) DO UPDATE SET Balance = Balance - @Amount";
+                }
+
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.Parameters.AddWithValue("@Amount", amount);
                 cmd.ExecuteNonQuery();
@@ -198,8 +225,19 @@ namespace Skynomi.Database
             {
                 cmd.CommandText = @"
                     INSERT INTO Ranks (Username, Rank)
-                    VALUES (@Username, @Rank)
-                    ON CONFLICT(Username) DO UPDATE SET Rank = @Rank";
+                    VALUES (@Username, @Rank)";
+
+                if (_databaseType == "mysql")
+                {
+                    cmd.CommandText += @"
+                        ON DUPLICATE KEY UPDATE Rank = @Rank";
+                }
+                else if (_databaseType == "sqlite")
+                {
+                    cmd.CommandText += @"
+                        ON CONFLICT(Username) DO UPDATE SET Rank = @Rank";
+                }
+
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.Parameters.AddWithValue("@Rank", rank);
                 cmd.ExecuteNonQuery();

@@ -1,3 +1,4 @@
+[![.NET](https://github.com/KeyouXZ/Skynomi/actions/workflows/dotnet.yml/badge.svg)](https://github.com/KeyouXZ/Skynomi/actions/workflows/dotnet.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 # Skynomi - TShock Plugin Documentation
 
 ## Overview
@@ -155,6 +156,9 @@ See [Config Document](./Config.md) for this
 - Added fallback mechanism for MySQL
 - Added wiki for all configuration files.
 - Added `Ranks->{Name}->Permission` and `Use Parent for Rank` as configuration options in the rank system.
+- Database query fixes.
+- Bug fixes and optimizations.
+- Fix rank system `rank up` logic error
 
 ## License
 
