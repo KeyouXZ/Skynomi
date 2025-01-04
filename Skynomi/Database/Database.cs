@@ -20,11 +20,13 @@ namespace Skynomi.Database
             {
                 if (_databaseType == "mysql")
                 {
+                    TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connecting to MySQL database...");
                     string MysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
                     string MysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
                     string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};";
                     _connection = new MySqlConnection(connectionString);
                     ((MySqlConnection)_connection).Open();
+                    TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
                 }
                 else
                 {
@@ -157,12 +159,18 @@ namespace Skynomi.Database
             {
                 // Create Account
                 cmd.CommandText = "INSERT OR IGNORE INTO Accounts (Username, Balance) VALUES (@Username, 0)";
+                if (_databaseType == "mysql") {
+                    cmd.CommandText = "INSERT IGNORE INTO Accounts (Username, Balance) VALUES (@Username, 0)";
+                }
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.ExecuteNonQuery();
 
                 // Create Rank
                 cmd.CommandText = "INSERT OR IGNORE INTO Ranks (Username, Rank) VALUES (@Username, 0)";
+                if (_databaseType == "mysql") {
+                    cmd.CommandText = "INSERT IGNORE INTO Ranks (Username, Rank) VALUES (@Username, 0)";
+                }
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.ExecuteNonQuery();
