@@ -136,29 +136,31 @@ See [Config Document](./Config.md) for this
 ## Changelog
 
 **Version 1.0.0** - Initial release
-- Added `balance` and `pay` commands
-- Basic economy system
-- Shop system
+- Added `balance` and `pay` commands.
+- Basic economy system.
+- Shop system.
 
 **Version 1.0.1**
-- Added `shop list` and `shop buy` commands
-- Added `admin setbal` command for admin
-- Added `rank`, `rank up`, `rank down` commands
-- Improve the economy system
-- Added rank system
-- Config file more readable
+- Added `shop list` and `shop buy` commands.
+- Added `admin setbal` command for admin.
+- Added `rank`, `rank up`, `rank down` commands.
+- Improve the economy system.
+- Added rank .
+- Config file more readable.
 - Added detailed configuration options for theme customization.
 - Bug fixes and optimizations.
 - Introduced rank system.
 
 **Version 1.0.2**
-- Added support for MySQL database
-- Added fallback mechanism for MySQL
+- Added support for MySQL database.
+- Added fallback mechanism for MySQL.
 - Added wiki for all configuration files.
 - Added `Ranks->{Name}->Permission` and `Use Parent for Rank` as configuration options in the rank system.
 - Database query fixes.
 - Bug fixes and optimizations.
-- Fix rank system `rank up` logic error
+- Fix rank system `rank up` logic error.
+- Keep alive MySQL connection.
+- `/balance` command can be accessed directly from the console.
 
 ## License
 

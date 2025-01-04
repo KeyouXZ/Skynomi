@@ -17,7 +17,7 @@ namespace Skynomi
             });
             TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Balance, Balance, "balance", "bal")
             {
-                AllowServer = false,
+                AllowServer = true,
                 HelpText = "Displays the player's current currency balance."
             });
             TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Admin, Admin, "admin")
@@ -101,11 +101,18 @@ namespace Skynomi
                 if (args.Player == null)
                     return;
 
+                
                 string targetUsername = args.Parameters.Count > 0 ? args.Parameters[0] : args.Player.Name;
 
                 var targetPlayer = TShock.Players
                 .Where(p => p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefault();
+
+                if (args.Player == TShockAPI.TSPlayer.Server && args.Parameters.Count == 0)
+                {
+                    args.Player.SendErrorMessage("You cannot see your balance from the console.");
+                    return;
+                }
 
                 if (targetPlayer == null)
                 {

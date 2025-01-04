@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using TShockAPI;
+using System.Timers;
 
 namespace Skynomi.Database
 {
@@ -10,6 +11,7 @@ namespace Skynomi.Database
         public static string _databaseType;
         private static Skynomi.Database.Config _config;
         private static bool isFallback = false;
+        private static System.Timers.Timer _keepAliveTimer;
 
         public void InitializeDatabase()
         {
@@ -23,15 +25,16 @@ namespace Skynomi.Database
                     TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connecting to MySQL database...");
                     string MysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
                     string MysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
-                    string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};";
+                    string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Pooling=true;Allow User Variables=true;Max Pool Size=100;MARS=True;";
+
                     _connection = new MySqlConnection(connectionString);
                     ((MySqlConnection)_connection).Open();
                     TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
+                    StartKeepAliveTimer();
                 }
                 else
                 {
                     InitializeSqlite();
-                    isFallback = true;
                     _databaseType = "sqlite";
                 }
 
@@ -76,7 +79,8 @@ namespace Skynomi.Database
                             Username VARCHAR(255) UNIQUE NOT NULL,
                             Balance DECIMAL(10, 2) NOT NULL DEFAULT 0
                         )";
-                    cmd.ExecuteNonQuery();
+                    // cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQueryAsync();
 
                     cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Ranks (
@@ -85,7 +89,8 @@ namespace Skynomi.Database
                             Rank INT NOT NULL DEFAULT 0,
                             HighestRank INT NOT NULL DEFAULT 0
                         )";
-                    cmd.ExecuteNonQuery();
+                    // cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQueryAsync();
                 }
                 else if (_databaseType == "sqlite")
                 {
@@ -95,7 +100,8 @@ namespace Skynomi.Database
                             Username TEXT UNIQUE NOT NULL,
                             Balance DECIMAL(10, 2) NOT NULL DEFAULT 0
                         )";
-                    cmd.ExecuteNonQuery();
+                    // cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQueryAsync();
 
                     cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Ranks (
@@ -104,17 +110,62 @@ namespace Skynomi.Database
                             Rank INTEGER NOT NULL DEFAULT 0,
                             HighestRank INTEGER NOT NULL DEFAULT 0
                         )";
-                    cmd.ExecuteNonQuery();
+                    // cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQueryAsync();
                 }
             }
         }
 
+        private void StartKeepAliveTimer()
+        {
+            _keepAliveTimer = new System.Timers.Timer(3000);
+            _keepAliveTimer.Elapsed += KeepAlive;
+            _keepAliveTimer.AutoReset = true;
+            _keepAliveTimer.Enabled = true;
+        }
+
+        private void KeepAlive(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                if (_connection is MySqlConnection mySqlConnection && mySqlConnection.State == System.Data.ConnectionState.Open)
+                {
+                    using (var cmd = mySqlConnection.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT 1";
+                        cmd.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.ConsoleWarn($"{Skynomi.Utils.Messages.Name} KeepAlive failed: {ex.Message}");
+                ((MySqlConnection)_connection).Close();
+
+                TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Reconnecting to MySQL database...");
+                string MysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
+                string MysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
+                string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Pooling=true;";
+
+                _connection = new MySqlConnection(connectionString);
+                
+                ((MySqlConnection)_connection).Open();
+                TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
+            }
+        }
 
         public static void Close()
         {
+            TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Closing database connection...");
+            if (_keepAliveTimer != null)
+            {
+                _keepAliveTimer.Stop();
+                _keepAliveTimer.Dispose();
+            }
+
             if (_databaseType == "mysql")
             {
-                ((MySqlConnection)_connection).Close();
+                ((MySqlConnection)_connection).CloseAsync();
             }
             else
             {
@@ -159,21 +210,25 @@ namespace Skynomi.Database
             {
                 // Create Account
                 cmd.CommandText = "INSERT OR IGNORE INTO Accounts (Username, Balance) VALUES (@Username, 0)";
-                if (_databaseType == "mysql") {
+                if (_databaseType == "mysql")
+                {
                     cmd.CommandText = "INSERT IGNORE INTO Accounts (Username, Balance) VALUES (@Username, 0)";
                 }
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@Username", username);
-                cmd.ExecuteNonQuery();
+                // cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQueryAsync();
 
                 // Create Rank
                 cmd.CommandText = "INSERT OR IGNORE INTO Ranks (Username, Rank) VALUES (@Username, 0)";
-                if (_databaseType == "mysql") {
+                if (_databaseType == "mysql")
+                {
                     cmd.CommandText = "INSERT IGNORE INTO Ranks (Username, Rank) VALUES (@Username, 0)";
                 }
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@Username", username);
-                cmd.ExecuteNonQuery();
+                // cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQueryAsync();
 
                 return;
             }
@@ -195,7 +250,8 @@ namespace Skynomi.Database
                 else
                 {
                     cmd.CommandText = "INSERT INTO Accounts (Username, Balance) VALUES (@Username, 0)";
-                    cmd.ExecuteNonQuery();
+                    // cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQueryAsync();
                     return 0;
                 }
             }
@@ -223,7 +279,8 @@ namespace Skynomi.Database
 
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.Parameters.AddWithValue("@Amount", amount);
-                cmd.ExecuteNonQuery();
+                // cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -248,7 +305,8 @@ namespace Skynomi.Database
 
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.Parameters.AddWithValue("@Amount", amount);
-                cmd.ExecuteNonQuery();
+                // cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -267,7 +325,8 @@ namespace Skynomi.Database
                 else
                 {
                     cmd.CommandText = "INSERT INTO Ranks (Username, Rank) VALUES (@Username, 0)";
-                    cmd.ExecuteNonQuery();
+                    // cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQueryAsync();
                     return 0;
                 }
             }
@@ -294,7 +353,8 @@ namespace Skynomi.Database
 
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.Parameters.AddWithValue("@Rank", rank);
-                cmd.ExecuteNonQuery();
+                // cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -304,7 +364,8 @@ namespace Skynomi.Database
             {
                 cmd.CommandText = query;
                 AddParameters(cmd, param);
-                cmd.ExecuteNonQuery();
+                // cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQueryAsync();
             }
         }
 
