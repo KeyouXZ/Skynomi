@@ -25,7 +25,7 @@ namespace Skynomi.Database
                     TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connecting to MySQL database...");
                     string MysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
                     string MysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
-                    string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Pooling=true;Allow User Variables=true;Max Pool Size=100;MARS=True;";
+                    string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Pooling=true;Allow User Variables=true;Max Pool Size=100;";
 
                     _connection = new MySqlConnection(connectionString);
                     ((MySqlConnection)_connection).Open();
@@ -175,9 +175,10 @@ namespace Skynomi.Database
 
         public static void PostInitialize()
         {
-            if (_databaseType != "sqlite" && _databaseType != "mysql")
+            if (_config.databaseType != "sqlite" && _config.databaseType != "mysql")
             {
                 TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.UnsupportedDatabaseType);
+                isFallback = true;
             }
 
             if (isFallback)
