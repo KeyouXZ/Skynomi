@@ -129,7 +129,33 @@ namespace Skynomi.ShopSystem
             {
                 if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.List, args)) return;
 
-                args.Player.SendInfoMessage(Skynomi.ShopSystem.Shop._List());
+                int pageSize = 5;
+                int currentPage = 1;
+                int totalPages = (int)Math.Ceiling(shopConfig.ShopItems.Count / (double)pageSize);
+
+                if (args.Parameters.Count > 1 && int.TryParse(args.Parameters[1], out int parsedPage))
+                {
+                    currentPage = Math.Clamp(parsedPage, 1, totalPages);
+                }
+
+                var itemsToDisplay = shopConfig.ShopItems
+                    .Skip((currentPage - 1) * pageSize)
+                    .Take(pageSize);
+
+                string message = $"Shop Items (Page {currentPage}/{totalPages})";
+                int index = (currentPage - 1) * pageSize + 1;
+                foreach (var item in itemsToDisplay)
+                {
+                    message += $"\n{index}. [i:{item.Key}] ({item.Key}) - {Skynomi.Utils.Util.CurrencyFormat(item.Value)}";
+                    index++;
+                }
+
+                if (!itemsToDisplay.Any())
+                {
+                    message = "No items available";
+                }
+
+                args.Player.SendInfoMessage(message);
             }
             else
             {
