@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
-using TerrariaApi.Server;
+﻿using TerrariaApi.Server;
 using TShockAPI;
 using Terraria;
 using Microsoft.Xna.Framework;

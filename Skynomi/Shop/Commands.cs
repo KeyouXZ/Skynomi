@@ -135,6 +135,11 @@ namespace Skynomi.ShopSystem
 
                 if (args.Parameters.Count > 1 && int.TryParse(args.Parameters[1], out int parsedPage))
                 {
+                    if (totalPages == 0)
+                    {
+                        args.Player.SendErrorMessage("No items available");
+                        return;
+                    }
                     currentPage = Math.Clamp(parsedPage, 1, totalPages);
                 }
 
@@ -150,10 +155,6 @@ namespace Skynomi.ShopSystem
                     index++;
                 }
 
-                if (!itemsToDisplay.Any())
-                {
-                    message = "No items available";
-                }
 
                 args.Player.SendInfoMessage(message);
             }
