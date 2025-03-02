@@ -17,7 +17,7 @@ namespace Skynomi.ShopSystem
             TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Shop, Shop, "shop")
             {
                 AllowServer = false,
-                HelpText = "Shop commands:\nbuy <item> [amount] - Buy an item\nlist - List all items in the shop"
+                HelpText = "Shop commands:\nbuy <item> [amount] - Buy an item\nlist [page] - List all items in the shop"
             });
         }
 
@@ -60,12 +60,12 @@ namespace Skynomi.ShopSystem
                         args.Player.SendErrorMessage(usage);
                         return;
                     }
-                    else if (!int.TryParse(args.Parameters[1], out int amount))
+                    else if (!int.TryParse(args.Parameters[1], out int itemID))
                     {
                         args.Player.SendErrorMessage("Invalid item ID");
                         return;
                     }
-                    else if (args.Parameters.Count >= 3 && !int.TryParse(args.Parameters[2], out int amount1))
+                    else if (args.Parameters.Count >= 3 && !int.TryParse(args.Parameters[2], out int amount))
                     {
                         args.Player.SendErrorMessage("Invalid amount");
                         return;
@@ -109,15 +109,16 @@ namespace Skynomi.ShopSystem
                         itemAmount = 1;
                     }
 
-                    if (balance < itemValue)
+                    decimal totalPrice = itemValue * itemAmount;
+                    if (balance < totalPrice)
                     {
-                        args.Player.SendErrorMessage($"You do not have enough {config.Currency} to buy this item. (Need {Skynomi.Utils.Util.CurrencyFormat((int)(itemValue - balance))} more)");
+                        args.Player.SendErrorMessage($"You do not have enough {config.Currency} to buy this item. (Need {Skynomi.Utils.Util.CurrencyFormat((int)(totalPrice - balance))} more)");
                         return;
                     }
 
-                    args.Player.SendInfoMessage($"You have bought [i/s{itemAmount}:{args.Parameters[1]}]");
+                    args.Player.SendInfoMessage($"You have bought [i/s{itemAmount}:{args.Parameters[1]}] for {Skynomi.Utils.Util.CurrencyFormat((int)(totalPrice))}");
                     args.Player.GiveItem(itemId, itemAmount);
-                    database.RemoveBalance(args.Player.Name, (int)itemValue);
+                    database.RemoveBalance(args.Player.Name, totalPrice);
 
                 }
                 catch (Exception ex)

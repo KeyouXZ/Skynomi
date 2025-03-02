@@ -57,7 +57,9 @@ This will send 500 units of virtual currency to the player named "Keyou".
 **Description**: Displays a list of items available for purchase.
 
 **Usage**: 
-`/shop list`
+`/shop list [page]`
+
+- `[page]`: The page number to view the available items.
 
 This command will show a list of all items that can be bought, along with their prices.
 
@@ -161,6 +163,7 @@ See [Config Document](./Config.md) for this
 - Fix rank system `rank up` logic error.
 - Keep alive MySQL connection.
 - `/balance` command can be accessed directly from the console.
+- Added shop pagination
 
 ## License
 
