@@ -61,6 +61,11 @@ This will send 500 units of virtual currency to the player named "Keyou".
 
 - `[page]`: The page number to view the available items.
 
+**Example:**
+```
+/shop list 2
+```
+
 This command will show a list of all items that can be bought, along with their prices.
 
 ### `/shop buy`
@@ -138,11 +143,13 @@ See [Config Document](./Config.md) for this
 ## Changelog
 
 **Version 1.0.0** - Initial release
+
 - Added `balance` and `pay` commands.
 - Basic economy system.
 - Shop system.
 
 **Version 1.0.1**
+
 - Added `shop list` and `shop buy` commands.
 - Added `admin setbal` command for admin.
 - Added `rank`, `rank up`, `rank down` commands.
@@ -154,6 +161,7 @@ See [Config Document](./Config.md) for this
 - Introduced rank system.
 
 **Version 1.0.2**
+
 - Added support for MySQL database.
 - Added fallback mechanism for MySQL.
 - Added wiki for all configuration files.
@@ -164,6 +172,14 @@ See [Config Document](./Config.md) for this
 - Keep alive MySQL connection.
 - `/balance` command can be accessed directly from the console.
 - Added shop pagination
+
+**Version 1.0.3**
+
+- Added platform detection for better compatibility.
+- Improved detailed NPC kill info display for `PC` users.
+- Implemented numerical abbreviation for currency (e.g., `1,000 → 1K`).
+- Fixed several bugs and stability issues.
+- Removed the `theme` option from the configuration for simplification.
 
 ## License
 

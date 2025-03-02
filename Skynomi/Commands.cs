@@ -10,7 +10,7 @@ namespace Skynomi
         {
             config = Config.Read();
 
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.List, Pay, "pay")
+            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Pay, Pay, "pay")
             {
                 AllowServer = false,
                 HelpText = "Allows a player to send currency to another player."

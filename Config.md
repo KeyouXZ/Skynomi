@@ -5,6 +5,7 @@ This document details the configuration settings for the currency and reward sys
 ## General Settings
 
 ### Currency
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -13,6 +14,7 @@ This document details the configuration settings for the currency and reward sys
 | Example | `"Currency": "Skyorb"` |
 
 ### Currency Format
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -20,19 +22,18 @@ This document details the configuration settings for the currency and reward sys
 | Default | "{currency} {amount}" |
 | Example | If currency is "Skyorb" and amount is 100, displays as "Skyorb 100" |
 
-## Theme Configuration
+### Abbreviasi Numerik
 
-### Theme
 | Field | Value |
-|-------|--------|
-| Type | String |
-| Description | Sets the visual theme for the system |
-| Default | "Simple" |
-| Valid Values | "Simple" or "Detailed" (not case sensitive) |
+|-------|-------|
+| Type | Boolean |
+| Description | Enables/disables abbreviasi numerik for currency |
+| Default | false |
 
 ## Reward Settings
 
 ### Reward Chance
+
 | Field | Value |
 |-------|--------|
 | Type | Number |
@@ -41,6 +42,7 @@ This document details the configuration settings for the currency and reward sys
 | Valid Range | 0-100 |
 
 ### Boss Reward
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -49,6 +51,7 @@ This document details the configuration settings for the currency and reward sys
 | Example | For a boss with 1000 HP: (1000/4)*0.5 = 125 reward |
 
 ### NPC Reward
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -59,6 +62,7 @@ This document details the configuration settings for the currency and reward sys
 ## Death and Special Rewards
 
 ### Drop on Death
+
 | Field | Value |
 |-------|--------|
 | Type | Number |
@@ -68,6 +72,7 @@ This document details the configuration settings for the currency and reward sys
 | Example | 0.5 means 50% of currency is lost on death |
 
 ### Reward From Statue
+
 | Field | Value |
 |-------|--------|
 | Type | Boolean |
@@ -75,6 +80,7 @@ This document details the configuration settings for the currency and reward sys
 | Default | false |
 
 ### Reward From Friendly NPC
+
 | Field | Value |
 |-------|--------|
 | Type | Boolean |
@@ -82,13 +88,13 @@ This document details the configuration settings for the currency and reward sys
 | Default | false |
 
 ## Example Configuration
+
 ```json
 {
   "Currency": "Skyorb",
   "Currency Format": "{currency} {amount}",
+  "Abbreviasi Numerik": false,
   "Reward Chance": 100,
-  "Theme": "Simple",
-  "Theme List": "Simple & Detailed",
   "Boss Reward": "{hp}/4*0.5",
   "NPC Reward": "{hp}/4*1.2",
   "Drop on Death": 0.5,
@@ -106,6 +112,7 @@ This document details the configuration settings for the shop system.
 ## Broadcast Settings
 
 ### Auto Broadcast Shop
+
 | Field | Value |
 |-------|--------|
 | Type | Boolean |
@@ -114,6 +121,7 @@ This document details the configuration settings for the shop system.
 | Valid Values | true/false |
 
 ### Broadcast Interval in Seconds
+
 | Field | Value |
 |-------|--------|
 | Type | Integer |
@@ -123,6 +131,7 @@ This document details the configuration settings for the shop system.
 | Minimum | 1 |
 
 ### Protected by Region
+
 | Field | Value |
 |-------|--------|
 | Type | Boolean |
@@ -142,6 +151,7 @@ This document details the configuration settings for the shop system.
 ## Shop Items
 
 ### Shop Items Configuration
+
 | Field | Value |
 |-------|--------|
 | Type | Object |
@@ -149,6 +159,7 @@ This document details the configuration settings for the shop system.
 | Format | Key-value pairs where key is the item ID and value is the price |
 
 #### Item Format
+
 ```json
 "Shop Items": {
     "itemID": price
@@ -159,6 +170,7 @@ This document details the configuration settings for the shop system.
 - `price`: Number representing the cost of the item in the configured currency
 
 ## Example Configuration
+
 ```json
 {
   "Auto Broadcast Shop": false,
@@ -172,6 +184,7 @@ This document details the configuration settings for the shop system.
 ```
 
 ## Usage Notes
+
 - Shop broadcasts will only occur if `Auto Broadcast Shop` is set to true
 - Broadcast interval should be set considering server performance and player experience
 - Item IDs must be unique within the shop
@@ -184,11 +197,13 @@ This document details the configuration settings for the shop system.
 This document details the configuration settings for the rank system.
 
 ## Structure Overview
+
 The rank configuration uses a hierarchical structure where each rank defines its cost and associated rewards.
 
 ## Rank Configuration
 
 ### Base Structure
+
 ```json
 "Use Parent for Rank": true,
 "Ranks": {
@@ -206,6 +221,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 ```
 
 ### Use Parent for Rank
+
 | Field | Value |
 |-------|--------|
 | Type | Boolean |
@@ -216,6 +232,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 ### Fields Description
 
 #### Rank Name
+
 | Field | Description |
 |-------|-------------|
 | Type | String |
@@ -223,6 +240,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 | Example | "Rank1", "Rank2" |
 
 #### Prefix
+
 | Field | Description |
 |-------|-------------|
 | Type | String |
@@ -230,6 +248,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 | Example | "[VIP]" |
 
 #### Suffix
+
 | Field | Description |
 |-------|-------------|
 | Type | String |
@@ -237,6 +256,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 | Example | "[Hero]" |
 
 #### Chat Color
+
 | Field | Description |
 |-------|-------------|
 | Type | Array of Numbers |
@@ -244,6 +264,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 | Example | [255, 0, 0] for red |
 
 #### Cost
+
 | Field | Description |
 |-------|-------------|
 | Type | Number |
@@ -251,6 +272,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 | Must be | Positive number |
 
 #### Permission
+
 | Field | Description |
 |-------|-------------|
 | Type | String |
@@ -258,6 +280,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 | Example | "rank.vip" |
 
 #### Rewards
+
 | Field | Description |
 |-------|-------------|
 | Type | Object |
@@ -265,6 +288,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 | Description | Items and quantities given when rank is obtained |
 
 ## Example Configuration
+
 ```json
 {
   "Use Parent for Rank": true,
@@ -304,6 +328,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 ```
 
 ## Configuration Notes
+
 - Each rank name must be unique
 - Costs should increase with higher ranks
 - Item IDs in rewards must be valid item identifiers
@@ -313,11 +338,13 @@ The rank configuration uses a hierarchical structure where each rank defines its
 - Higher ranks typically have better reward ratios
 
 ## Important Note
+
 - A server restart is required after modifying the `Use Parent for Rank` setting to ensure changes take effect.
 - Always backup your configuration files before making changes.
 - Test the configuration in a development environment if possible.
 
 ## Best Practices
+
 1. Use descriptive rank names
 2. Maintain balanced cost progression
 3. Scale rewards appropriately with rank cost
@@ -325,6 +352,7 @@ The rank configuration uses a hierarchical structure where each rank defines its
 5. Document item IDs used in rewards
 
 ---
+
 # Database Configuration
 
 This document details the configuration settings for the database system.
@@ -332,6 +360,7 @@ This document details the configuration settings for the database system.
 ## Database Type Settings
 
 ### Database Type
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -342,6 +371,7 @@ This document details the configuration settings for the database system.
 ## SQLite Configuration
 
 ### SQLite Database Path
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -353,6 +383,7 @@ This document details the configuration settings for the database system.
 ## MySQL Configuration
 
 ### MySqlHost
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -362,6 +393,7 @@ This document details the configuration settings for the database system.
 | Format | "hostname:port" |
 
 ### MySqlDbName
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -370,6 +402,7 @@ This document details the configuration settings for the database system.
 | Required | Only when Database Type is "mysql" |
 
 ### MySqlUsername
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -378,6 +411,7 @@ This document details the configuration settings for the database system.
 | Required | Only when Database Type is "mysql" |
 
 ### MySqlPassword
+
 | Field | Value |
 |-------|--------|
 | Type | String |
@@ -388,6 +422,7 @@ This document details the configuration settings for the database system.
 ## Example Configurations
 
 ### SQLite Configuration Example
+
 ```json
 {
   "Database Type": "sqlite",
@@ -400,6 +435,7 @@ This document details the configuration settings for the database system.
 ```
 
 ### MySQL Configuration Example
+
 ```json
 {
   "Database Type": "mysql",
@@ -412,6 +448,7 @@ This document details the configuration settings for the database system.
 ```
 
 ## Security Best Practices
+
 1. Use strong passwords for MySQL authentication
 2. Keep database credentials secure and never share them
 3. Regularly backup your database
@@ -419,6 +456,7 @@ This document details the configuration settings for the database system.
 5. Consider using environment variables for sensitive information
 
 ## Configuration Notes
+
 - Only fill in the credentials for the database type you're using
 - Ensure proper network connectivity for MySQL connections
 - Verify database user permissions

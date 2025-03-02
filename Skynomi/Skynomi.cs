@@ -4,6 +4,7 @@ using Terraria;
 using Microsoft.Xna.Framework;
 using TShockAPI.Hooks;
 using System.Data;
+using System.Text;
 
 namespace Skynomi
 {
@@ -13,7 +14,7 @@ namespace Skynomi
         public override string Author => "Keyou";
         public override string Description => "Terraria Economy System";
         public override string Name => "Skynomi";
-        public override Version Version => new Version(1, 0, 2);
+        public override Version Version => new Version(1, 0, 3);
 
         private Skynomi.Config config;
         private Skynomi.Database.Database database;
@@ -51,7 +52,7 @@ namespace Skynomi
                 ServerApi.Hooks.NpcStrike.Deregister(this, OnNpcHit);
                 GeneralHooks.ReloadEvent -= Reload;
                 GetDataHandlers.KillMe -= PlayerDead;
-                
+
                 Skynomi.Database.Database.Close();
             }
             base.Dispose(disposing);
@@ -65,7 +66,7 @@ namespace Skynomi
             database = new Skynomi.Database.Database();
             database.InitializeDatabase();
             Skynomi.Database.Database.PostInitialize();
-            
+
             Skynomi.ShopSystem.Shop.Reload();
             Skynomi.Commands.Reload();
             Skynomi.RankSystem.Ranks.Reload();
@@ -146,10 +147,18 @@ namespace Skynomi
                 int totalDamage = interaction.DamageByPlayers.Values.Sum();
                 if (totalDamage == 0) return;
 
+                Random random = new Random();
+
                 foreach (var (playerName, playerDamage) in interaction.DamageByPlayers)
                 {
                     double damagePercentage = (double)playerDamage / totalDamage; // Percentage of total damage
                     int playerReward = (int)(baseReward * damagePercentage);
+
+                    double chance = random.NextDouble() * 100;
+                    if (chance > config.RewardChance)
+                    {
+                        continue;
+                    }
 
                     if (playerName == killer.Name)
                     {
@@ -162,7 +171,7 @@ namespace Skynomi
                         if (playerReward > 0)
                         {
                             database.AddBalance(player.Name, playerReward);
-                            ShowFloatingText(player, new string[] { "[Skynomi]", $"+ {Skynomi.Utils.Util.CurrencyFormat(playerReward)}", $"From: {NPC.GetFullnameByID(args.npc.netID)}", $"+ {Skynomi.Utils.Util.CurrencyFormat(playerReward)}" });
+                            ShowFloatingText(player, playerReward, NPC.GetFullnameByID(args.npc.netID));
                         }
                     }
                 }
@@ -193,34 +202,73 @@ namespace Skynomi
             }
         }
 
-
-        private void ShowFloatingText(TSPlayer player, string[] texts)
+        #region Floating Text
+        private CancellationTokenSource? floatingTextCancelToken;
+        private void ShowFloatingText(TSPlayer player, int amount, string from)
         {
             if (player?.Active != true)
                 return;
 
+            decimal balance = database.GetBalance(player.Name);
+
             var position = player.TPlayer.position;
 
-            if (config.Theme.ToLower() == "detailed")
+            if (Skynomi.Utils.Util.GetPlatform(player) == "PC")
             {
-                var orangeColor = new Color(255, 165, 0);
-                var greenColor = new Color(0, 255, 0);
-                var blueColor = new Color(0, 0, 255);
-                float posX = player.X + 400;
+                floatingTextCancelToken?.Cancel();
+                floatingTextCancelToken = new CancellationTokenSource();
 
-                player.SendData(PacketTypes.CreateCombatTextExtended, texts[0], (int)orangeColor.PackedValue, posX, player.Y + 12);
-                player.SendData(PacketTypes.CreateCombatTextExtended, texts[1], (int)greenColor.PackedValue, posX, player.Y + 32);
-                player.SendData(PacketTypes.CreateCombatTextExtended, texts[2], (int)blueColor.PackedValue, posX, player.Y + 52);
-                return;
+                string message = string.Format("{5}[c/ff9900:[Skynomi][c/ff9900:]]{6}\r\n{0}{1}\r\n{2}\r\n[c/ffff00:Bal:] {3}{4}",
+                "+",
+                Skynomi.Utils.Util.CurrencyFormat(amount).ToString(),
+                $"[c/00ff26:for {from}]" + RepeatEmptySpaces(100),
+                Skynomi.Utils.Util.CurrencyFormat((int)balance).ToString(),
+                RepeatLineBreaks(69),
+                RepeatLineBreaks(1),
+                RepeatEmptySpaces(100));
+
+                player.SendData(PacketTypes.Status, message, 0);
+
+                Task.Delay(5000, floatingTextCancelToken.Token).ContinueWith(t =>
+                {
+                    if (!t.IsCanceled)
+                    {
+                        player.SendData(PacketTypes.Status, "", 0);
+                    }
+                }, TaskScheduler.Default);
             }
             else
             {
                 position.Y -= 48f;
-                player.SendData(PacketTypes.CreateCombatTextExtended, texts[3], (int)Color.Blue.PackedValue, position.X, position.Y);
+                string text = $"+ {Skynomi.Utils.Util.CurrencyFormat(amount)}";
+                player.SendData(PacketTypes.CreateCombatTextExtended, text, (int)Color.Blue.PackedValue, position.X, position.Y);
                 return;
-            } 
+            }
 
         }
+
+        protected string RepeatLineBreaks(int number)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < number; i++)
+            {
+                sb.Append("\r\n");
+            }
+
+            return sb.ToString();
+        }
+
+        protected string RepeatEmptySpaces(int number)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < number; i++)
+            {
+                sb.Append(" ");
+            }
+
+            return sb.ToString();
+        }
+        #endregion
     }
 
     public class NpcInteraction
