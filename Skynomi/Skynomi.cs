@@ -14,7 +14,7 @@ namespace Skynomi
         public override string Author => "Keyou";
         public override string Description => "Terraria Economy System";
         public override string Name => "Skynomi";
-        public override Version Version => new Version(1, 0, 3);
+        public override Version Version => new Version(1, 1, 0);
 
         private Skynomi.Config config;
         private Skynomi.Database.Database database;

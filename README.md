@@ -174,7 +174,7 @@ See [Config Document](./Config.md) for this
 - `/balance` command can be accessed directly from the console.
 - Added shop pagination
 
-**Version 1.0.3**
+**Version 1.1.0**
 
 - Add support for loading extensions from `ServerPlugins/`
 - Added platform detection for better compatibility.
