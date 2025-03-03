@@ -91,6 +91,20 @@ public class MyExtension : Loader.ISkynomiExtension, Loader.ISkynomiExtensionPos
 }
 ```
 
+### Note
+
+- ❌ **Don't do this**
+
+  ```csharp
+  ServerApi.Hooks.NetGreetPlayer.Register(this, OnPlayerJoin);
+  ```
+
+- ✅ **Do this**
+
+  ```csharp
+  ServerApi.Hooks.NetGreetPlayer.Register(Loader.GetPlugin(), OnPlayerJoin);
+  ```
+
 ## Installing the Extension
 
 1. **Build your extension** into a `.dll` file.

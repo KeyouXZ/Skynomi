@@ -1,4 +1,5 @@
 [![.NET](https://github.com/KeyouXZ/Skynomi/actions/workflows/dotnet.yml/badge.svg)](https://github.com/KeyouXZ/Skynomi/actions/workflows/dotnet.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # Skynomi - TShock Plugin Documentation
 
 ## Overview
@@ -22,12 +23,13 @@
 
 **Description**: Displays the player's current virtual currency balance.
 
-**Usage**: 
+**Usage**:
 `/balance [player]`
 
 - `[player]`: The name of the player you want to check their balance (Optional, defaults to yourself).
 
 **Example:**
+
 ```
 /balance
 /balance Keyou
@@ -46,6 +48,7 @@ This command will return the amount of virtual currency the player currently has
 - `<amount>`: The amount of money you want to send.
 
 **Example**:
+
 ```
 /pay Keyou 500
 ```
@@ -56,12 +59,13 @@ This will send 500 units of virtual currency to the player named "Keyou".
 
 **Description**: Displays a list of items available for purchase.
 
-**Usage**: 
+**Usage**:
 `/shop list [page]`
 
 - `[page]`: The page number to view the available items.
 
 **Example:**
+
 ```
 /shop list 2
 ```
@@ -79,11 +83,13 @@ This command will show a list of all items that can be bought, along with their 
 - `[amount]`: The quantity of the item you want to purchase (optional, defaults to 1 if not specified).
 
 **Example:**
+
 ```
 /shop buy 4444 1
 ```
 
 ### `/admin setbal`
+
 **Description**: Sets the balance of a player.
 
 **Usage**:
@@ -93,22 +99,41 @@ This command will show a list of all items that can be bought, along with their 
 - `<amount>`: The new balance value for the player.
 
 **Example:**
+
 ```
 /admin setbal Keyou 1000
 /admin setbal Keyou -500
 ```
 
 ### `/rank up`
+
 **Description**: Rank up to the next level
 
 **Usage**:
 `/rank up`
 
 ### `/rank down`
+
 **Description**: Rank down to the previous level
 
 **Usage**:
 `/rank down`
+
+### `/listextension`
+
+**Description**: List all extensions
+
+**Usage**:
+`/listextension [name]`
+
+- `[name]`: The name of the extension you want to list.
+
+**Example:**
+
+```
+/listextension
+/listextension Shop
+```
 
 ## Permissions
 
@@ -128,7 +153,6 @@ Set up the following permissions to control access to the plugin features:
 | `/listextension`   | `skynomi.listextension`   |
 
 ---
-
 
 ## Installation
 
@@ -182,6 +206,12 @@ See [Config Document](./Config.md) for this
 - Implemented numerical abbreviation for currency (e.g., `1,000 → 1K`).
 - Fixed several bugs and stability issues.
 - Removed the `theme` option from the configuration for simplification.
+
+**Version 2.0.0**
+
+- Added `listextension` command to list all extensions.
+- The `shop system` and `rank system` are now standalone projects.
+- Improve the `loader` extension capability to support custom extensions.
 
 ## License
 
