@@ -125,6 +125,7 @@ Set up the following permissions to control access to the plugin features:
 | `/admin setbal`    | `skynomi.admin.balance`   |
 | `/rank up`         | `skynomi.rank.up`         |
 | `/rank down`       | `skynomi.rank.down`       |
+| `/listextension`   | `skynomi.listextension`   |
 
 ---
 
@@ -175,6 +176,7 @@ See [Config Document](./Config.md) for this
 
 **Version 1.0.3**
 
+- Add support for loading extensions from `ServerPlugins/`
 - Added platform detection for better compatibility.
 - Improved detailed NPC kill info display for `PC` users.
 - Implemented numerical abbreviation for currency (e.g., `1,000 → 1K`).
