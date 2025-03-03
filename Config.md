@@ -130,6 +130,8 @@ This document details the configuration settings for the shop system.
 | Unit | Seconds |
 | Minimum | 1 |
 
+## Shop Region Settings
+
 ### Protected by Region
 
 | Field | Value |
@@ -175,6 +177,8 @@ This document details the configuration settings for the shop system.
 {
   "Auto Broadcast Shop": false,
   "Broadcast Interval in Seconds": 60,
+  "Protected by Region": false,
+  "Shop Region": "ShopRegion",
   "Shop Items": {
     "1": 100,
     "2": 200,
