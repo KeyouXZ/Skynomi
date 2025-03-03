@@ -42,6 +42,9 @@ namespace Skynomi
             Skynomi.Commands.Initialize();
             Skynomi.RankSystem.Ranks.Initialize();
             Skynomi.Utils.Util.Initialize();
+
+            // Extension
+            Skynomi.Utils.Loader.Initialize();
         }
 
         protected override void Dispose(bool disposing)
@@ -54,6 +57,9 @@ namespace Skynomi
                 GetDataHandlers.KillMe -= PlayerDead;
 
                 Skynomi.Database.Database.Close();
+
+                // Extension
+                Skynomi.Utils.Loader.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -72,6 +78,9 @@ namespace Skynomi
             Skynomi.RankSystem.Ranks.Reload();
             Skynomi.Utils.Util.Reload();
 
+            // Extension
+            Skynomi.Utils.Loader.Reload(args);
+
             args.Player.SendSuccessMessage(Skynomi.Utils.Messages.Reload);
         }
 
@@ -79,6 +88,9 @@ namespace Skynomi
         {
             Skynomi.Database.Database.PostInitialize();
             Skynomi.ShopSystem.Shop.PostInitialize();
+            
+            // Extension
+            Skynomi.Utils.Loader.PostInitialize(args);
         }
 
         private void OnPlayerJoin(GreetPlayerEventArgs args)
