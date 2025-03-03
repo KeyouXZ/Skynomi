@@ -1,30 +1,44 @@
-using IL.Terraria.GameContent.RGB;
+using Skynomi.Utils;
+using TerrariaApi.Server;
 using TShockAPI;
+using TShockAPI.Hooks;
 
 namespace Skynomi.RankSystem
 {
-    public class Ranks
+    public class Ranks : Loader.ISkynomiExtension, Loader.ISkynomiExtensionReloadable
     {
-        private static Skynomi.RankSystem.Config rankConfig;
+        public string Name => "Rank System";
+        public string Description => "Rank system extension for Skynomi";
+        public string Version => "1.0.0";
+        public string Author => "Keyou";
 
-        public static void Initialize()
+        private static RankSystem.Config rankConfig;
+        public void Initialize()
         {
-            rankConfig = Skynomi.RankSystem.Config.Read();
-            Skynomi.RankSystem.Commands.Initialize();
+            rankConfig = RankSystem.Config.Read();
+            RankSystem.Database.Initialize();
+            ServerApi.Hooks.NetGreetPlayer.Register(Loader.GetPlugin(), OnPlayerJoin);
+            
+            RankSystem.Commands.Initialize();
             CreateGroup(1);
         }
 
-        public static void Reload()
+        public void Reload(ReloadEventArgs args)
         {
             bool tempConf = rankConfig.useParent;
-            rankConfig = Skynomi.RankSystem.Config.Read();
-            Skynomi.RankSystem.Commands.Reload();
+            rankConfig = RankSystem.Config.Read();
+            RankSystem.Commands.Reload();
             CreateGroup(2);
 
             if (tempConf != rankConfig.useParent)
             {
-                TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.ParentSettingChanged);
+                TShock.Log.ConsoleWarn(RankSystem.Messages.ParentSettingChanged);
             }
+        }
+
+        private void OnPlayerJoin(GreetPlayerEventArgs args)
+        {
+            RankSystem.Database.CreatePlayer(TShock.Players[args.Who].Name);
         }
 
         public static void CreateGroup(int status)

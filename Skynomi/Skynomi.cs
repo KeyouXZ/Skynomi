@@ -21,8 +21,11 @@ namespace Skynomi
 
         private Dictionary<int, NpcInteraction> npcInteractions = new Dictionary<int, NpcInteraction>();
 
+        public static SkynomiPlugin Instance { get; private set; }
+        
         public SkynomiPlugin(Main game) : base(game)
         {
+            Instance = this;
         }
 
         public override void Initialize()
@@ -38,9 +41,7 @@ namespace Skynomi
             GeneralHooks.ReloadEvent += Reload;
             GetDataHandlers.KillMe += PlayerDead;
 
-            Skynomi.ShopSystem.Shop.Initialize();
             Skynomi.Commands.Initialize();
-            Skynomi.RankSystem.Ranks.Initialize();
             Skynomi.Utils.Util.Initialize();
 
             // Extension
@@ -73,9 +74,7 @@ namespace Skynomi
             database.InitializeDatabase();
             Skynomi.Database.Database.PostInitialize();
 
-            Skynomi.ShopSystem.Shop.Reload();
             Skynomi.Commands.Reload();
-            Skynomi.RankSystem.Ranks.Reload();
             Skynomi.Utils.Util.Reload();
 
             // Extension
@@ -87,7 +86,6 @@ namespace Skynomi
         private void OnPostInitialize(EventArgs args)
         {
             Skynomi.Database.Database.PostInitialize();
-            Skynomi.ShopSystem.Shop.PostInitialize();
             
             // Extension
             Skynomi.Utils.Loader.PostInitialize(args);

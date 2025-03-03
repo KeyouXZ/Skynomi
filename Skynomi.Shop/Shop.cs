@@ -1,35 +1,48 @@
 using System.Timers;
+using Skynomi.Utils;
 using TShockAPI;
+using TShockAPI.Hooks;
 
-namespace Skynomi.ShopSystem {
-    public class Shop {
+namespace Skynomi.ShopSystem
+{
+    public class Shop : Loader.ISkynomiExtension, Loader.ISkynomiExtensionReloadable, Loader.ISkynomiExtensionPostInit
+    {
+        public string Name => "Shop System";
+        public string Description => "Shop system extension for Skynomi";
+        public string Version => "1.0.0";
+        public string Author => "Keyou";
+
         private static Skynomi.Config config;
-        private static Skynomi.ShopSystem.Config shopConfig;
+        private static ShopSystem.Config shopConfig;
         private static System.Timers.Timer broadcastTimer;
-        public static void Initialize() {
+        public void Initialize()
+        {
             config = Skynomi.Config.Read();
-            shopConfig = Skynomi.ShopSystem.Config.Read();
+            shopConfig = ShopSystem.Config.Read();
 
-            Skynomi.ShopSystem.Commands.Initialize();
+            ShopSystem.Commands.Initialize();
         }
 
-        public static void Reload() {
-            if (shopConfig.AutoBroadcastShop) {
+        public void Reload(ReloadEventArgs args)
+        {
+            if (shopConfig.AutoBroadcastShop)
+            {
                 broadcastTimer.Stop();
             }
 
             config = Skynomi.Config.Read();
-            shopConfig = Skynomi.ShopSystem.Config.Read();
+            shopConfig = ShopSystem.Config.Read();
 
-            Skynomi.ShopSystem.Commands.Reload();
+            ShopSystem.Commands.Reload();
 
             if (shopConfig.ProtectedByRegion && string.IsNullOrEmpty(shopConfig.ShopRegion))
             {
-                TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.EmptyNEnableProtectedRegion);
+                TShock.Log.ConsoleWarn(ShopSystem.Messages.EmptyNEnableProtectedRegion);
             }
 
-            if (shopConfig.AutoBroadcastShop && _List() != "No items available") {
-                TShock.Log.Warn(Skynomi.Utils.Messages.AutoShopDisabled);
+            if (shopConfig.AutoBroadcastShop && _List() != "No items available")
+            {
+                TShock.Log.Warn(ShopSystem.Messages.AutoShopDisabled);
                 broadcastTimer = new System.Timers.Timer(shopConfig.BroadcastIntervalInSeconds * 1000);
                 broadcastTimer.Elapsed += OnBroadcastTimerElapsed;
                 broadcastTimer.AutoReset = true;
@@ -37,11 +50,12 @@ namespace Skynomi.ShopSystem {
             }
         }
 
-        public static void PostInitialize()
+        public void PostInitialize(EventArgs args)
         {
             // broadcast
-            if (shopConfig.AutoBroadcastShop && _List() != "No items available") {
-                TShock.Log.Warn(Skynomi.Utils.Messages.AutoShopDisabled);
+            if (shopConfig.AutoBroadcastShop && _List() != "No items available")
+            {
+                TShock.Log.Warn(ShopSystem.Messages.AutoShopDisabled);
                 broadcastTimer = new System.Timers.Timer(shopConfig.BroadcastIntervalInSeconds * 1000);
                 broadcastTimer.Elapsed += OnBroadcastTimerElapsed;
                 broadcastTimer.AutoReset = true;
@@ -50,7 +64,7 @@ namespace Skynomi.ShopSystem {
 
             if (shopConfig.ProtectedByRegion && string.IsNullOrEmpty(shopConfig.ShopRegion))
             {
-                TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.EmptyNEnableProtectedRegion);
+                TShock.Log.ConsoleWarn(ShopSystem.Messages.EmptyNEnableProtectedRegion);
             }
         }
 

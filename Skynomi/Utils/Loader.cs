@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.Xna.Framework;
+using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.Hooks;
 
@@ -216,6 +217,11 @@ namespace Skynomi.Utils
                 Console.WriteLine(text);
             }
             _loadedExtensions.Clear();
+        }
+
+        public static TerrariaPlugin GetPlugin()
+        {
+            return SkynomiPlugin.Instance;
         }
     }
 }

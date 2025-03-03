@@ -1,12 +1,11 @@
 ﻿using TShockAPI;
-using TShockAPI.DB;
 
 namespace Skynomi.ShopSystem
 {
     public static class Commands
     {
         private static Skynomi.Config config;
-        private static Skynomi.ShopSystem.Config shopConfig;
+        private static ShopSystem.Config shopConfig;
         private static Skynomi.Database.Database database = new Database.Database();
 
         public static void Initialize()
@@ -14,7 +13,7 @@ namespace Skynomi.ShopSystem
             config = Skynomi.Config.Read();
             shopConfig = Skynomi.ShopSystem.Config.Read();
 
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Shop, Shop, "shop")
+            TShockAPI.Commands.ChatCommands.Add(new Command(ShopSystem.Permissions.Shop, Shop, "shop")
             {
                 AllowServer = false,
                 HelpText = "Shop commands:\nbuy <item> [amount] - Buy an item\nlist [page] - List all items in the shop"
@@ -49,7 +48,7 @@ namespace Skynomi.ShopSystem
 
             if (args.Parameters[0] == "buy")
             {
-                if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.Buy, args)) return;
+                if (!Skynomi.Utils.Util.CheckPermission(ShopSystem.Permissions.Buy, args)) return;
 
                 try
                 {
@@ -128,7 +127,7 @@ namespace Skynomi.ShopSystem
             }
             else if (args.Parameters[0] == "list")
             {
-                if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.List, args)) return;
+                if (!Skynomi.Utils.Util.CheckPermission(ShopSystem.Permissions.List, args)) return;
 
                 int pageSize = 5;
                 int currentPage = 1;

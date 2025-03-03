@@ -5,6 +5,10 @@ VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Skynomi", "Skynomi\Skynomi.csproj", "{08D66116-6D73-47DA-97C4-56AC647B7AC0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Skynomi.Shop", "Skynomi.Shop\Skynomi.Shop.csproj", "{10988523-E96D-401B-A083-A36619AF2546}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Skynomi.RankSystem", "Skynomi.RankSystem\Skynomi.RankSystem.csproj", "{8B23CFBE-A350-4A20-BAEC-E37953BF463E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{08D66116-6D73-47DA-97C4-56AC647B7AC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08D66116-6D73-47DA-97C4-56AC647B7AC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08D66116-6D73-47DA-97C4-56AC647B7AC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10988523-E96D-401B-A083-A36619AF2546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10988523-E96D-401B-A083-A36619AF2546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10988523-E96D-401B-A083-A36619AF2546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10988523-E96D-401B-A083-A36619AF2546}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B23CFBE-A350-4A20-BAEC-E37953BF463E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B23CFBE-A350-4A20-BAEC-E37953BF463E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B23CFBE-A350-4A20-BAEC-E37953BF463E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B23CFBE-A350-4A20-BAEC-E37953BF463E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
