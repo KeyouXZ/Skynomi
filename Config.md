@@ -210,6 +210,8 @@ The rank configuration uses a hierarchical structure where each rank defines its
 
 ```json
 "Use Parent for Rank": true,
+"Announce Rank Up": false,
+"Enable Rank Down": true,
 "Ranks": {
     "rankName": {
         "Prefix": string,
@@ -230,6 +232,24 @@ The rank configuration uses a hierarchical structure where each rank defines its
 |-------|--------|
 | Type | Boolean |
 | Description | Determines if the rank should inherit properties from a parent rank |
+| Default | true |
+| Valid Values | true/false |
+
+### Announce Rank Up
+
+| Field | Value |
+|-------|--------|
+| Type | Boolean |
+| Description | Determines if a message should be sent to all players when a player ranks up |
+| Default | false |
+| Valid Values | true/false |
+
+### Enable Rank Down
+
+| Field | Value |
+|-------|--------|
+| Type | Boolean |
+| Description | Determines if rank down is enabled |
 | Default | true |
 | Valid Values | true/false |
 
@@ -296,6 +316,8 @@ The rank configuration uses a hierarchical structure where each rank defines its
 ```json
 {
   "Use Parent for Rank": true,
+  "Announce Rank Up": false,
+  "Enable Rank Down": true,
   "Ranks": {
     "Rank1": {
       "Prefix": "[i:4444] [c/FFFFFF:Adventurer] ",

@@ -13,13 +13,14 @@
 - **Rank Progression**: Players can rank up or down, unlocking perks.
 - **Admin Controls**: Easily manage player balances and settings.
 - **Custom Rewards**: Configure rewards for killing NPCs or bosses.
-- **Customizable Themes**: Toggle between simple and detailed UI for commands.
 - **Optional Death Penalties**: Adjustable currency loss on player death.
 - **Broadcast System**: Automated announcements for shop items.
 
 ## Commands
 
-### `/balance`
+### Skynomi
+
+#### `/balance`
 
 **Description**: Displays the player's current virtual currency balance.
 
@@ -37,7 +38,7 @@
 
 This command will return the amount of virtual currency the player currently has.
 
-### `/pay`
+#### `/pay`
 
 **Description**: Allows a player to send virtual currency to another player.
 
@@ -55,40 +56,8 @@ This command will return the amount of virtual currency the player currently has
 
 This will send 500 units of virtual currency to the player named "Keyou".
 
-### `/shop list`
 
-**Description**: Displays a list of items available for purchase.
-
-**Usage**:
-`/shop list [page]`
-
-- `[page]`: The page number to view the available items.
-
-**Example:**
-
-```
-/shop list 2
-```
-
-This command will show a list of all items that can be bought, along with their prices.
-
-### `/shop buy`
-
-**Description**: Allows a player to buy an item from the available list using virtual currency.
-
-**Usage**:
-`/shop buy <item> [amount]`
-
-- `<item>`: The name of the item you want to purchase.
-- `[amount]`: The quantity of the item you want to purchase (optional, defaults to 1 if not specified).
-
-**Example:**
-
-```
-/shop buy 4444 1
-```
-
-### `/admin setbal`
+#### `/admin setbal`
 
 **Description**: Sets the balance of a player.
 
@@ -105,21 +74,7 @@ This command will show a list of all items that can be bought, along with their 
 /admin setbal Keyou -500
 ```
 
-### `/rank up`
-
-**Description**: Rank up to the next level
-
-**Usage**:
-`/rank up`
-
-### `/rank down`
-
-**Description**: Rank down to the previous level
-
-**Usage**:
-`/rank down`
-
-### `/listextension`
+#### `/listextension`
 
 **Description**: List all extensions
 
@@ -135,6 +90,87 @@ This command will show a list of all items that can be bought, along with their 
 /listextension Shop
 ```
 
+---
+
+### Shop Extension
+
+#### `/shop list`
+
+**Description**: Displays a list of items available for purchase.
+
+**Usage**:
+`/shop list [page]`
+
+- `[page]`: The page number to view the available items.
+
+**Example:**
+
+```
+/shop list 2
+```
+
+This command will show a list of all items that can be bought, along with their prices.
+
+#### `/shop buy`
+
+**Description**: Allows a player to buy an item from the available list using virtual currency.
+
+**Usage**:
+`/shop buy <item> [amount]`
+
+- `<item>`: The name of the item you want to purchase.
+- `[amount]`: The quantity of the item you want to purchase (optional, defaults to 1 if not specified).
+
+**Example:**
+
+```
+/shop buy 4444 1
+```
+
+---
+
+### Rank System Extension
+
+#### `/rank up`
+
+**Description**: Rank up to the next level
+
+**Usage**:
+`/rank up`
+
+#### `/rank down`
+
+**Description**: Rank down to the previous level
+
+**Usage**:
+`/rank down`
+
+#### `/rankutils list`
+
+**Description**: List all available ranks
+
+**Usage**:
+`/rankutils list`
+
+### `/rankutils info`
+
+**Description**: Displays rank details
+
+**Usage**:
+`/rankutils info <rank>`
+
+- `<rank>`: The name of the rank you want to view
+
+**Example:**
+
+```
+/rankutils info Master
+```
+
+This command will display the details of the rank named "Master".
+
+---
+
 ## Permissions
 
 Set up the following permissions to control access to the plugin features:
@@ -143,14 +179,16 @@ Set up the following permissions to control access to the plugin features:
 |--------------------|---------------------------|
 | `/balance`         | `skynomi.balance`         |
 | `/pay`             | `skynomi.pay`             |
+| `/admin`           | `skynomi.admin`           |
+| `/admin setbal`    | `skynomi.admin.balance`   |
+| `/listextension`   | `skynomi.listextension`   |
 | `/shop`            | `skynomi.shop`            |
 | `/shop list`       | `skynomi.shop.list`       |
 | `/shop buy`        | `skynomi.shop.buy`        |
-| `/admin`           | `skynomi.admin`           |
-| `/admin setbal`    | `skynomi.admin.balance`   |
 | `/rank up`         | `skynomi.rank.up`         |
 | `/rank down`       | `skynomi.rank.down`       |
-| `/listextension`   | `skynomi.listextension`   |
+| `/rankutils list`  | `skynomi.rank.list`       |
+| `/rankutils info`  | `skynomi.rank.info`       |
 
 ---
 
@@ -212,6 +250,10 @@ See [Config Document](./Config.md) for this
 - Added `listextension` command to list all extensions.
 - The `shop system` and `rank system` are now standalone projects.
 - Improve the `loader` extension capability to support custom extensions.
+- Rank System: `v1.0.0` -> `v1.1.0`
+  - Added `Announce Rank Up` configuration
+  - Added `Enable Rank Down` configuration
+  - Added `rankutils info` & `rankutils list` commands
 
 ## License
 
