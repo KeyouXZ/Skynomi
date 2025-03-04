@@ -7,6 +7,10 @@ namespace Skynomi.RankSystem
     {
         [JsonProperty("Use Parent for Rank")]
         public bool useParent { get; set; } = true;
+        [JsonProperty("Announce Rank Up")]
+        public bool announceRankUp { get; set; } = false;
+        [JsonProperty("Enable Rank Down")]
+        public bool enableRankDown { get; set; } = true;
         public Dictionary<string, Rank> Ranks { get; set; } = new Dictionary<string, Rank>();
 
         public static Config Read()

@@ -1,17 +1,17 @@
-using Microsoft.Data.Sqlite;
+using Microsoft.Xna.Framework;
 using TShockAPI;
 
 namespace Skynomi.RankSystem
 {
     public class Commands
     {
-        private static Skynomi.RankSystem.Config rankConfig;
+        private static RankSystem.Config rankConfig;
         private static Skynomi.Config config;
         private static Skynomi.Database.Database database = new();
         private static RankSystem.Database rankDatabase = new();
         public static void Initialize()
         {
-            rankConfig = Skynomi.RankSystem.Config.Read();
+            rankConfig = RankSystem.Config.Read();
             config = Skynomi.Config.Read();
 
             // Init Commands
@@ -19,6 +19,12 @@ namespace Skynomi.RankSystem
             {
                 AllowServer = false,
                 HelpText = "Rank commands:\nup - Rank up to the next level\ndown - Rank down to the previous level"
+            });
+
+            TShockAPI.Commands.ChatCommands.Add(new Command(RankSystem.Permissions.RankList, RankUtils, "rankutils")
+            {
+                AllowServer = true,
+                HelpText = "Rank Utils commands:\ninfo <rank> - Get information about a rank\nlist - List all available ranks"
             });
         }
 
@@ -94,7 +100,15 @@ namespace Skynomi.RankSystem
                         database.RemoveBalance(args.Player.Name, rankCost);
                         TShock.UserAccounts.SetUserGroup(TShock.UserAccounts.GetUserAccountByName(args.Player.Name), "rank_" + (rank + 1));
                         rankDatabase.UpdateRank(args.Player.Name, (rank + 1));
-                        args.Player.SendInfoMessage($"Your rank has been upgraded to {nextRank}.");
+
+                        if (rankConfig.announceRankUp)
+                        {
+                            TSPlayer.All.SendInfoMessage($"{args.Player.Name} has ranked up to {nextRank}!");
+                        }
+                        else
+                        {
+                            args.Player.SendInfoMessage($"Your rank has been upgraded to {nextRank}.");
+                        }
                     }
                     else
                     {
@@ -105,6 +119,12 @@ namespace Skynomi.RankSystem
                 {
                     if (!Skynomi.Utils.Util.CheckPermission(RankSystem.Permissions.RankDown, args)) return;
 
+                    if (rankConfig.enableRankDown == false)
+                    {
+                        args.Player.SendErrorMessage("Rank down is disabled.");
+                        return;
+                    }
+                    
                     // start at 1
                     int rank = rankDatabase.GetRank(args.Player.Name);
 
@@ -137,6 +157,86 @@ namespace Skynomi.RankSystem
                 TShock.Log.ConsoleError(ex.ToString());
             }
 
+        }
+
+        public static void RankUtils(CommandArgs args)
+        {
+            try
+            {
+                string usage = "Usage: /rankutils <info/list>";
+                if (args.Parameters.Count == 0)
+                {
+                    args.Player.SendErrorMessage(usage);
+                    return;
+                }
+
+                if (args.Parameters[0] == "info")
+                {
+                    if (!Skynomi.Utils.Util.CheckPermission(RankSystem.Permissions.RankInfo, args)) return;
+                    string infoUsage = "Usage: /rankutils info <rank>";
+
+                    if (args.Parameters.Count < 2)
+                    {
+                        args.Player.SendErrorMessage(infoUsage);
+                        return;
+                    }
+
+                    string rank = args.Parameters[1];
+                    if (rankConfig.Ranks.ContainsKey(rank))
+                    {
+                        string rankPrefix = rankConfig.Ranks[rank].Prefix;
+                        string rankSuffix = rankConfig.Ranks[rank].Suffix;
+                        int[] ChatColor = rankConfig.Ranks[rank].ChatColor;
+                        string hex = $"{ChatColor[0]:X2}{ChatColor[1]:X2}{ChatColor[2]:X2}";
+                        string formattedColor = $"[c/{hex}:Hello]";
+                        int rankCost = rankConfig.Ranks[rank].Cost;
+                        string rankPermission = rankConfig.Ranks[rank].Permission;
+                        string rankReward = "";
+                        foreach (var item in rankConfig.Ranks[rank].Rewards)
+                        {
+                            rankReward += $"[i/s{item.Value}:{item.Key}] ";
+                        }
+
+                        string detail = $"[c/00FF00:=== Rank Details ===]\n" +
+                            $"[c/0000FF:Name:] {rank}\n" +
+                            $"[c/0000FF:Prefix:] {rankPrefix}\n" +
+                            $"[c/0000FF:Suffix:] {rankSuffix}\n" +
+                            $"[c/0000FF:Chat Color:] {formattedColor} ([c/{hex}:#{hex}])\n" +
+                            $"[c/0000FF:Cost:] {Skynomi.Utils.Util.CurrencyFormat(rankCost)}\n" +
+                            $"[c/0000FF:Permissioon:] {rankPermission}\n" +
+                            $"[c/0000FF:Reward:] {rankReward}";
+
+                        args.Player.SendMessage(detail, Color.White);
+                    }
+                    else
+                    {
+                        args.Player.SendErrorMessage($"Rank '{rank}' not found.");
+                        return;
+                    }
+                }
+                else if (args.Parameters[0] == "list")
+                {
+                    if (!Skynomi.Utils.Util.CheckPermission(RankSystem.Permissions.RankList, args)) return;
+
+                    string text = "Rank List:";
+                    args.Player.SendSuccessMessage(text);
+                    text = "";
+                    foreach (var rank in rankConfig.Ranks)
+                    {
+                        text += $"\"{rank.Key}\" ";
+                    }
+                    args.Player.SendInfoMessage(text);
+                }
+                else
+                {
+                    args.Player.SendErrorMessage(usage);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.ConsoleError(ex.ToString());
+            }
         }
 
         public static string GetRankByIndex(int index)
