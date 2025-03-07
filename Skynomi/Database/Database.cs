@@ -128,7 +128,7 @@ namespace Skynomi.Database
                 string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Pooling=true;";
 
                 _connection = new MySqlConnection(connectionString);
-                
+
                 ((MySqlConnection)_connection).Open();
                 TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
             }
@@ -136,7 +136,6 @@ namespace Skynomi.Database
 
         public static void Close()
         {
-            TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Closing database connection...");
             if (_keepAliveTimer != null)
             {
                 _keepAliveTimer.Stop();
@@ -145,6 +144,7 @@ namespace Skynomi.Database
 
             if (_databaseType == "mysql")
             {
+                TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Closing database connection...");
                 ((MySqlConnection)_connection).CloseAsync();
             }
             else
@@ -280,14 +280,39 @@ namespace Skynomi.Database
             }
         }
 
-        public void CustomVoid(string query, object? param = null)
+        public dynamic CustomVoid(string query, object? param = null, bool output = false)
         {
             using (var cmd = CreateCommand())
             {
                 cmd.CommandText = query;
                 AddParameters(cmd, param);
-                // cmd.ExecuteNonQuery();
-                cmd.ExecuteNonQueryAsync();
+
+                if (output)
+                {
+                    var resultList = new List<Dictionary<string, object>>();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var row = new Dictionary<string, object>();
+
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                            }
+
+                            resultList.Add(row);
+                        }
+                    }
+
+                    return resultList;
+                }
+                else
+                {
+                    cmd.ExecuteNonQuery();
+                    return new List<Dictionary<string, object>>();
+                }
             }
         }
 

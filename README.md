@@ -258,6 +258,7 @@ See [Config Document](./Config.md) for this
 **Version 2.1.0**
 
 - Added `shop sell` command to allow players to sell items back to the shop.
+- Enhanced `CustomVoid` method to optionally return query results when `output` parameter is set to true.
 
 ## License
 
