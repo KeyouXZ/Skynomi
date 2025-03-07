@@ -18,7 +18,7 @@ namespace Skynomi.ShopSystem
         public string ShopRegion { get; set; } = "ShopRegion";
 
         [JsonProperty("Shop Items")]
-        public Dictionary<string, Int32> ShopItems { get; set; } = new Dictionary<string, Int32>();
+        public Dictionary<string, ShopItem> ShopItems { get; set; } = new Dictionary<string, ShopItem>();
 
         public static Config Read()
         {
@@ -28,7 +28,7 @@ namespace Skynomi.ShopSystem
 
             try
             {
-                Config config = new Config();
+                Config config = new Config().defaultConfig();
 
                 if (!File.Exists(configPath))
                 {
@@ -44,6 +44,33 @@ namespace Skynomi.ShopSystem
                 TShock.Log.ConsoleError(ex.ToString());
                 return new Config();
             }
+        }
+
+        public Config defaultConfig()
+        {
+            var defaultConfig = new Config();
+
+            defaultConfig.ShopItems["4444"] = new ShopItem
+            {
+                buyPrice = 1000,
+                sellPrice = 900,
+            };
+
+            defaultConfig.ShopItems["1"] = new ShopItem
+            {
+                buyPrice = 2,
+                sellPrice = 1,
+            };
+
+            return defaultConfig;
+        }
+
+        public class ShopItem {
+            [JsonProperty("Buy Price")]
+            public int buyPrice { get; set; }
+
+            [JsonProperty("Sell Price")]
+            public int sellPrice { get; set; }
         }
     }
 }

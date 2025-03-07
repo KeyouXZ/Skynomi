@@ -5,6 +5,7 @@ namespace Skynomi.ShopSystem
         public static readonly string Shop = "skynomi.shop";
         public static readonly string List = "skynomi.shop.list";
         public static readonly string Buy = "skynomi.shop.buy";
+        public static readonly string Sell = "skynomi.shop.sell";
     }
 
     public class Messages

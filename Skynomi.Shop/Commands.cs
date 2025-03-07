@@ -1,4 +1,5 @@
-﻿using TShockAPI;
+﻿using Terraria;
+using TShockAPI;
 
 namespace Skynomi.ShopSystem
 {
@@ -46,6 +47,7 @@ namespace Skynomi.ShopSystem
                 }
             }
 
+            #region Buy
             if (args.Parameters[0] == "buy")
             {
                 if (!Skynomi.Utils.Util.CheckPermission(ShopSystem.Permissions.Buy, args)) return;
@@ -81,7 +83,7 @@ namespace Skynomi.ShopSystem
                         if (args.Parameters[1] == item.Key)
                         {
                             itemKey = item.Key;
-                            itemValue = item.Value;
+                            itemValue = item.Value.buyPrice;
                             isThereAny = true;
                             break;
                         }
@@ -125,6 +127,114 @@ namespace Skynomi.ShopSystem
                     TShock.Log.ConsoleError(ex.ToString());
                 }
             }
+            #endregion
+            #region Sell
+            else if (args.Parameters[0] == "sell")
+            {
+                if (!Skynomi.Utils.Util.CheckPermission(ShopSystem.Permissions.Sell, args)) return;
+
+                string usage = "Usage: /shop sell <item> [amount] <yes>";
+
+                if (args.Parameters.Count < 2)
+                {
+                    args.Player.SendErrorMessage(usage);
+                    return;
+                }
+
+                int itemID;
+                if (!int.TryParse(args.Parameters[1], out itemID))
+                {
+                    args.Player.SendErrorMessage("Invalid item ID");
+                    return;
+                }
+
+                int amount = 1;
+                if (args.Parameters.Count > 3 && !int.TryParse(args.Parameters[2], out amount))
+                {
+                    args.Player.SendErrorMessage("Invalid amount");
+                    return;
+                }
+
+                if (args.Parameters[^1].ToLower() != "yes")
+                {
+                    args.Player.SendErrorMessage("Canceled.");
+                    return;
+                }
+
+                var playerItem = args.Player.SelectedItem;
+
+                // Check Item
+                bool isThereAny = false;
+                string itemKey = "1";
+                decimal itemValue = 0;
+                foreach (var item in shopConfig.ShopItems)
+                {
+                    if (itemID.ToString() == item.Key)
+                    {
+                        itemKey = item.Key;
+                        itemValue = item.Value.sellPrice;
+                        isThereAny = true;
+                        break;
+                    }
+                }
+
+                // check item
+                if (!isThereAny)
+                {
+                    args.Player.SendErrorMessage("Item not sellable");
+                    return;
+                }
+
+                int totalOwned = 0;
+                foreach (var item in args.Player.TPlayer.inventory)
+                {
+                    if (item.type == itemID)
+                    {
+                        totalOwned += item.stack;
+                    }
+                }
+
+                if (totalOwned < amount)
+                {
+                    args.Player.SendErrorMessage($"You don't have {amount} of this item.");
+                    return;
+                }
+
+                bool isSSC = Main.ServerSideCharacter;
+
+                if (!isSSC)
+                {
+                    Main.ServerSideCharacter = true;
+                    NetMessage.SendData(7, args.Player.Index, -1, null, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0);
+                    args.Player.IgnoreSSCPackets = true;
+                }
+
+                int remainingToRemove = amount;
+                for (int i = 0; i < args.Player.TPlayer.inventory.Length; i++)
+                {
+                    if (args.Player.TPlayer.inventory[i].type == itemID)
+                    {
+                        if (args.Player.TPlayer.inventory[i].stack > remainingToRemove)
+                        {
+                            args.Player.TPlayer.inventory[i].stack -= remainingToRemove;
+                            NetMessage.SendData((int)PacketTypes.PlayerSlot, -1, -1, null, args.Player.Index, i, 0, 0, 0, 0, 0);
+                            break;
+                        }
+                        else
+                        {
+                            remainingToRemove -= args.Player.TPlayer.inventory[i].stack;
+                            args.Player.TPlayer.inventory[i].netDefaults(0);
+                            NetMessage.SendData((int)PacketTypes.PlayerSlot, -1, -1, null, args.Player.Index, i, 0, 0, 0, 0, 0);
+                        }
+                    }
+                }
+
+                decimal totalPrice = itemValue * amount;
+                args.Player.SendInfoMessage($"You have sell [i/s{amount}:{itemID}] for {Skynomi.Utils.Util.CurrencyFormat((int)totalPrice)}");
+                database.AddBalance(args.Player.Name, (int)totalPrice);
+            }
+            #endregion
+            #region List
             else if (args.Parameters[0] == "list")
             {
                 if (!Skynomi.Utils.Util.CheckPermission(ShopSystem.Permissions.List, args)) return;
@@ -151,7 +261,7 @@ namespace Skynomi.ShopSystem
                 int index = (currentPage - 1) * pageSize + 1;
                 foreach (var item in itemsToDisplay)
                 {
-                    message += $"\n{index}. [i:{item.Key}] ({item.Key}) - {Skynomi.Utils.Util.CurrencyFormat(item.Value)}";
+                    message += $"\n{index}. [i:{item.Key}] ({item.Key}) - B: {Skynomi.Utils.Util.CurrencyFormat(item.Value.buyPrice)} | S: {Skynomi.Utils.Util.CurrencyFormat(item.Value.sellPrice)}";
                     index++;
                 }
 
@@ -163,6 +273,7 @@ namespace Skynomi.ShopSystem
                 args.Player.SendErrorMessage(shopUsage);
                 return;
             }
+            #endregion
         }
     }
 }

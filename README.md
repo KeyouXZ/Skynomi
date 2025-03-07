@@ -255,6 +255,10 @@ See [Config Document](./Config.md) for this
   - Added `Enable Rank Down` configuration
   - Added `rankutils info` & `rankutils list` commands
 
+**Version 2.1.0**
+
+- Added `shop sell` command to allow players to sell items back to the shop.
+
 ## License
 
 This plugin is licensed under the [MIT License](https://opensource.org/licenses/MIT).

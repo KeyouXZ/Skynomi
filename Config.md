@@ -164,12 +164,16 @@ This document details the configuration settings for the shop system.
 
 ```json
 "Shop Items": {
-    "itemID": price
+    "itemID": {
+        "Buy Price": number,
+        "Sell Price": number
+    }
 }
 ```
 
 - `itemID`: String or number representing the unique identifier for the item
-- `price`: Number representing the cost of the item in the configured currency
+- `Buy Price`: Number representing the cost of the item in the configured currency
+- `Sell Price`: Number representing the price at which the item can be sold back to the shop
 
 ## Example Configuration
 
@@ -180,9 +184,14 @@ This document details the configuration settings for the shop system.
   "Protected by Region": false,
   "Shop Region": "ShopRegion",
   "Shop Items": {
-    "1": 100,
-    "2": 200,
-    "3": 300
+    "4444": {
+      "Buy Price": 1000,
+      "Sell Price": 900
+    },
+    "1": {
+      "Buy Price": 2,
+      "Sell Price": 1
+    },
   }
 }
 ```

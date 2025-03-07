@@ -9,7 +9,7 @@ namespace Skynomi.ShopSystem
     {
         public string Name => "Shop System";
         public string Description => "Shop system extension for Skynomi";
-        public string Version => "1.0.0";
+        public string Version => "1.1.0";
         public string Author => "Keyou";
 
         private static Skynomi.Config config;
@@ -76,7 +76,7 @@ namespace Skynomi.ShopSystem
             foreach (var item in shopConfig.ShopItems)
             {
                 i++;
-                message += $"\n{i}. [i:{item.Key}] ({item.Key}) - {Skynomi.Utils.Util.CurrencyFormat(item.Value)}";
+                message += $"\n{i}. [i:{item.Key}] ({item.Key}) - B: {Skynomi.Utils.Util.CurrencyFormat(item.Value.buyPrice)} | S: {Skynomi.Utils.Util.CurrencyFormat(item.Value.sellPrice)}";
             }
 
             if (message == "Shop Items")
