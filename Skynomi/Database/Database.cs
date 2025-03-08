@@ -13,7 +13,7 @@ namespace Skynomi.Database
         private static bool isFallback = false;
         private static System.Timers.Timer _keepAliveTimer;
 
-        public void InitializeDatabase()
+        public async Task InitializeDatabaseAsync()
         {
             _config = Skynomi.Database.Config.Read();
             _databaseType = _config.databaseType.ToLower();
@@ -28,17 +28,17 @@ namespace Skynomi.Database
                     string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Pooling=true;Allow User Variables=true;Max Pool Size=100;";
 
                     _connection = new MySqlConnection(connectionString);
-                    ((MySqlConnection)_connection).Open();
+                    await ((MySqlConnection)_connection).OpenAsync();
                     TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
                     StartKeepAliveTimer();
                 }
                 else
                 {
-                    InitializeSqlite();
+                    await InitializeSqliteAsync();
                     _databaseType = "sqlite";
                 }
 
-                CreateTables();
+                await CreateTablesAsync();
             }
             catch (Exception ex)
             {
@@ -47,19 +47,24 @@ namespace Skynomi.Database
                 {
                     isFallback = true;
                     _databaseType = "sqlite";
-                    InitializeSqlite();
+                    await InitializeSqliteAsync();
                 }
             }
         }
 
-        private void InitializeSqlite()
+        public void InitializeDatabase()
+        {
+            InitializeDatabaseAsync().GetAwaiter().GetResult();
+        }
+
+        private async Task InitializeSqliteAsync()
         {
             try
             {
                 string dbPath = Path.Combine(TShock.SavePath, _config.databasePath);
                 _connection = new SqliteConnection($"Data Source={dbPath}");
-                ((SqliteConnection)_connection).Open();
-                CreateTables();
+                await ((SqliteConnection)_connection).OpenAsync();
+                await CreateTablesAsync();
             }
             catch (Exception ex)
             {
@@ -67,33 +72,36 @@ namespace Skynomi.Database
             }
         }
 
-        private void CreateTables()
+        private void InitializeSqlite()
+        {
+            InitializeSqliteAsync().GetAwaiter().GetResult();
+        }
+
+        private async Task CreateTablesAsync()
         {
             using (var cmd = CreateCommand())
             {
-                if (_databaseType == "mysql")
-                {
-                    cmd.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS Accounts (
-                            Id INT AUTO_INCREMENT PRIMARY KEY,
-                            Username VARCHAR(255) UNIQUE NOT NULL,
-                            Balance DECIMAL(10, 2) NOT NULL DEFAULT 0
-                        )";
-                    // cmd.ExecuteNonQuery();
-                    cmd.ExecuteNonQueryAsync();
-                }
-                else if (_databaseType == "sqlite")
-                {
-                    cmd.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS Accounts (
-                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            Username TEXT UNIQUE NOT NULL,
-                            Balance DECIMAL(10, 2) NOT NULL DEFAULT 0
-                        )";
-                    // cmd.ExecuteNonQuery();
-                    cmd.ExecuteNonQueryAsync();
-                }
+                cmd.CommandText = _databaseType == "mysql" ?
+                @"
+                CREATE TABLE IF NOT EXISTS Accounts (
+                    Id INT AUTO_INCREMENT PRIMARY KEY,
+                    Username VARCHAR(255) UNIQUE NOT NULL,
+                    Balance DECIMAL(10, 2) NOT NULL DEFAULT 0
+                )" :
+                @"
+                CREATE TABLE IF NOT EXISTS Accounts (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Username TEXT UNIQUE NOT NULL,
+                    Balance DECIMAL(10, 2) NOT NULL DEFAULT 0
+                )";
+
+                await cmd.ExecuteNonQueryAsync();
             }
+        }
+
+        private void CreateTables()
+        {
+            CreateTablesAsync().GetAwaiter().GetResult();
         }
 
         private void StartKeepAliveTimer()
@@ -104,7 +112,7 @@ namespace Skynomi.Database
             _keepAliveTimer.Enabled = true;
         }
 
-        private void KeepAlive(object sender, ElapsedEventArgs e)
+        private async void KeepAlive(object sender, ElapsedEventArgs e)
         {
             try
             {
@@ -113,7 +121,7 @@ namespace Skynomi.Database
                     using (var cmd = mySqlConnection.CreateCommand())
                     {
                         cmd.CommandText = "SELECT 1";
-                        cmd.ExecuteNonQueryAsync();
+                        await cmd.ExecuteNonQueryAsync();
                     }
                 }
             }
@@ -129,7 +137,7 @@ namespace Skynomi.Database
 
                 _connection = new MySqlConnection(connectionString);
 
-                ((MySqlConnection)_connection).Open();
+                await ((MySqlConnection)_connection).OpenAsync();
                 TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
             }
         }
@@ -185,11 +193,10 @@ namespace Skynomi.Database
             }
         }
 
-        public void CreatePlayer(string username)
+        public async Task CreatePlayerAsync(string username)
         {
             using (var cmd = CreateCommand())
             {
-                // Create Account
                 cmd.CommandText = "INSERT OR IGNORE INTO Accounts (Username, Balance) VALUES (@Username, 0)";
                 if (_databaseType == "mysql")
                 {
@@ -197,22 +204,23 @@ namespace Skynomi.Database
                 }
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@Username", username);
-                // cmd.ExecuteNonQuery();
-                cmd.ExecuteNonQueryAsync();
-
-                return;
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
+        public void CreatePlayer(string username)
+        {
+            CreatePlayerAsync(username).GetAwaiter().GetResult();
+        }
 
-        public decimal GetBalance(string username)
+        public async Task<decimal> GetBalanceAsync(string username)
         {
             using (var cmd = CreateCommand())
             {
                 cmd.CommandText = "SELECT Balance FROM Accounts WHERE Username = @Username";
                 cmd.Parameters.AddWithValue("@Username", username);
 
-                object result = cmd.ExecuteScalar();
+                object result = await cmd.ExecuteScalarAsync();
                 if (result != null && result != DBNull.Value)
                 {
                     return Convert.ToDecimal(result);
@@ -220,67 +228,59 @@ namespace Skynomi.Database
                 else
                 {
                     cmd.CommandText = "INSERT INTO Accounts (Username, Balance) VALUES (@Username, 0)";
-                    // cmd.ExecuteNonQuery();
-                    cmd.ExecuteNonQueryAsync();
+                    await cmd.ExecuteNonQueryAsync();
                     return 0;
                 }
             }
         }
 
-        public void AddBalance(string username, int amount)
+        public decimal GetBalance(string username)
+        {
+            return GetBalanceAsync(username).GetAwaiter().GetResult();
+        }
+
+        public async Task AddBalanceAsync(string username, int amount)
         {
             using (var cmd = CreateCommand())
             {
-                cmd.CommandText = @"
-                    INSERT INTO Accounts (Username, Balance)
-                    VALUES (@Username, @Amount)";
-
-                if (_databaseType == "mysql")
-                {
-                    cmd.CommandText += @"
-                        ON DUPLICATE KEY UPDATE Balance = Balance + @Amount";
-                }
-                else if (_databaseType == "sqlite")
-                {
-                    cmd.CommandText += @"
-                        ON CONFLICT(Username) DO UPDATE SET Balance = Balance + @Amount";
-                }
-
+                cmd.CommandText = _databaseType == "mysql" ?
+                    @"INSERT INTO Accounts (Username, Balance) VALUES (@Username, @Amount)
+                      ON DUPLICATE KEY UPDATE Balance = Balance + @Amount" :
+                    @"INSERT INTO Accounts (Username, Balance) VALUES (@Username, @Amount)
+                      ON CONFLICT(Username) DO UPDATE SET Balance = Balance + @Amount";
 
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.Parameters.AddWithValue("@Amount", amount);
-                // cmd.ExecuteNonQuery();
-                cmd.ExecuteNonQueryAsync();
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
+
+        public void AddBalance(string username, int amount)
+        {
+            AddBalanceAsync(username, amount).GetAwaiter().GetResult();
+        }
+
+        public async Task RemoveBalanceAsync(string username, decimal amount)
+        {
+            using (var cmd = CreateCommand())
+            {
+                cmd.CommandText = _databaseType == "mysql" ?
+                    @"INSERT INTO Accounts (Username, Balance) VALUES (@Username, @Amount)
+                      ON DUPLICATE KEY UPDATE Balance = Balance - @Amount" :
+                    @"INSERT INTO Accounts (Username, Balance) VALUES (@Username, @Amount)
+                      ON CONFLICT(Username) DO UPDATE SET Balance = Balance - @Amount";
+                cmd.Parameters.AddWithValue("@Username", username);
+                cmd.Parameters.AddWithValue("@Amount", amount);
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
         public void RemoveBalance(string username, decimal amount)
         {
-            using (var cmd = CreateCommand())
-            {
-                cmd.CommandText = @"
-                    INSERT INTO Accounts (Username, Balance)
-                    VALUES (@Username, @Amount)";
-
-                if (_databaseType == "mysql")
-                {
-                    cmd.CommandText += @"
-                        ON DUPLICATE KEY UPDATE Balance = Balance - @Amount";
-                }
-                else if (_databaseType == "sqlite")
-                {
-                    cmd.CommandText += @"
-                        ON CONFLICT(Username) DO UPDATE SET Balance = Balance - @Amount";
-                }
-
-                cmd.Parameters.AddWithValue("@Username", username);
-                cmd.Parameters.AddWithValue("@Amount", amount);
-                // cmd.ExecuteNonQuery();
-                cmd.ExecuteNonQueryAsync();
-            }
+            RemoveBalanceAsync(username, amount).GetAwaiter().GetResult();
         }
 
-        public dynamic CustomVoid(string query, object? param = null, bool output = false)
+        public async Task<dynamic> CustomVoidAsync(string query, object? param = null, bool output = false)
         {
             using (var cmd = CreateCommand())
             {
@@ -291,9 +291,9 @@ namespace Skynomi.Database
                 {
                     var resultList = new List<Dictionary<string, object>>();
 
-                    using (var reader = cmd.ExecuteReader())
+                    using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        while (reader.Read())
+                        while (await reader.ReadAsync())
                         {
                             var row = new Dictionary<string, object>();
 
@@ -310,34 +310,49 @@ namespace Skynomi.Database
                 }
                 else
                 {
-                    cmd.ExecuteNonQuery();
+                    await cmd.ExecuteNonQueryAsync();
                     return new List<Dictionary<string, object>>();
                 }
             }
         }
 
-        public string CustomString(string query, object? param = null)
+        public dynamic CustomVoid(string query, object? param = null, bool output = false)
+        {
+            return CustomVoidAsync(query, param, output).GetAwaiter().GetResult();
+        }
+
+        public async Task<string> CustomStringAsync(string query, object? param = null)
         {
             using (var cmd = CreateCommand())
             {
                 cmd.CommandText = query;
                 AddParameters(cmd, param);
 
-                object result = cmd.ExecuteScalar();
+                object result = await cmd.ExecuteScalarAsync();
                 return result != null && result != DBNull.Value ? Convert.ToString(result) ?? string.Empty : string.Empty;
+            }
+        }
+
+        public string CustomString(string query, object? param = null)
+        {
+            return CustomStringAsync(query, param).GetAwaiter().GetResult();
+        }
+
+        public async Task<decimal> CustomDecimalAsync(string query, object? param = null)
+        {
+            using (var cmd = CreateCommand())
+            {
+                cmd.CommandText = query;
+                AddParameters(cmd, param);
+
+                object result = await cmd.ExecuteScalarAsync();
+                return result != null && result != DBNull.Value ? Convert.ToDecimal(result) : 0;
             }
         }
 
         public decimal CustomDecimal(string query, object? param = null)
         {
-            using (var cmd = CreateCommand())
-            {
-                cmd.CommandText = query;
-                AddParameters(cmd, param);
-
-                object result = cmd.ExecuteScalar();
-                return result != null && result != DBNull.Value ? Convert.ToDecimal(result) : 0;
-            }
+            return CustomDecimalAsync(query, param).GetAwaiter().GetResult();
         }
 
         private void AddParameters(dynamic cmd, object param)

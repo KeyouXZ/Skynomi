@@ -226,6 +226,7 @@ namespace Skynomi
             if (Skynomi.Utils.Util.GetPlatform(player) == "PC")
             {
                 floatingTextCancelToken?.Cancel();
+                floatingTextCancelToken?.Dispose();
                 floatingTextCancelToken = new CancellationTokenSource();
 
                 string message = string.Format("{5}[c/ff9900:[Skynomi][c/ff9900:]]{6}\r\n{0}{1}\r\n{2}\r\n[c/ffff00:Bal:] {3}{4}",
