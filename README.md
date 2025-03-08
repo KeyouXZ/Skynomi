@@ -278,8 +278,10 @@ See [Config Document](./Config.md) for this
 - Shop System: `v1.0.0` -> `v1.1.0`
   - Added `shop sell` command to allow players to sell items back to the shop.
   - Fix bug on `shop buy` and `shop sell` command working for amounts < 1.
-- Enhanced `CustomVoid` method to optionally return query results when `output` parameter is set to true.
-- Use async methods and improve error handling in Database class
+- Skynomi: `v2.0.0` -> `v2.1.0`
+  - Enhanced `CustomVoid` method to optionally return query results when `output` parameter is set to true.
+  - Use async methods and improve error handling in Database class
+  - Remove MySQL keep alive connection
 
 ## License
 

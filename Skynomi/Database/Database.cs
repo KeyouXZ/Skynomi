@@ -30,7 +30,6 @@ namespace Skynomi.Database
                     _connection = new MySqlConnection(connectionString);
                     await ((MySqlConnection)_connection).OpenAsync();
                     TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
-                    StartKeepAliveTimer();
                 }
                 else
                 {
@@ -96,49 +95,6 @@ namespace Skynomi.Database
                 )";
 
                 await cmd.ExecuteNonQueryAsync();
-            }
-        }
-
-        private void CreateTables()
-        {
-            CreateTablesAsync().GetAwaiter().GetResult();
-        }
-
-        private void StartKeepAliveTimer()
-        {
-            _keepAliveTimer = new System.Timers.Timer(3000);
-            _keepAliveTimer.Elapsed += KeepAlive;
-            _keepAliveTimer.AutoReset = true;
-            _keepAliveTimer.Enabled = true;
-        }
-
-        private async void KeepAlive(object sender, ElapsedEventArgs e)
-        {
-            try
-            {
-                if (_connection is MySqlConnection mySqlConnection && mySqlConnection.State == System.Data.ConnectionState.Open)
-                {
-                    using (var cmd = mySqlConnection.CreateCommand())
-                    {
-                        cmd.CommandText = "SELECT 1";
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.ConsoleWarn($"{Skynomi.Utils.Messages.Name} KeepAlive failed: {ex.Message}");
-                ((MySqlConnection)_connection).Close();
-
-                TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Reconnecting to MySQL database...");
-                string MysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
-                string MysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
-                string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Pooling=true;";
-
-                _connection = new MySqlConnection(connectionString);
-
-                await ((MySqlConnection)_connection).OpenAsync();
-                TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
             }
         }
 
