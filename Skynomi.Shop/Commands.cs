@@ -17,7 +17,7 @@ namespace Skynomi.ShopSystem
             TShockAPI.Commands.ChatCommands.Add(new Command(ShopSystem.Permissions.Shop, Shop, "shop")
             {
                 AllowServer = false,
-                HelpText = "Shop commands:\nbuy <item> [amount] - Buy an item\nlist [page] - List all items in the shop"
+                HelpText = "Shop commands:\nbuy <item> [amount] - Buy an item\nsell <item> [amount] - Sell an item\nlist [page] - List all items in the shop"
             });
         }
 
@@ -29,7 +29,7 @@ namespace Skynomi.ShopSystem
 
         public static void Shop(CommandArgs args)
         {
-            string shopUsage = "Usage: /shop <buy/list>";
+            string shopUsage = "Usage: /shop <buy/sell/list>";
             if (args.Parameters.Count == 0)
             {
                 args.Player.SendErrorMessage(shopUsage);
@@ -56,6 +56,7 @@ namespace Skynomi.ShopSystem
                 {
                     string usage = "Usage: /shop buy <item> [amount]";
 
+                    int itemAmount = 1;
                     if (args.Parameters.Count < 2)
                     {
                         args.Player.SendErrorMessage(usage);
@@ -66,13 +67,17 @@ namespace Skynomi.ShopSystem
                         args.Player.SendErrorMessage("Invalid item ID");
                         return;
                     }
-                    else if (args.Parameters.Count >= 3 && !int.TryParse(args.Parameters[2], out int amount))
+                    else if (args.Parameters.Count >= 3 && !int.TryParse(args.Parameters[2], out itemAmount))
                     {
                         args.Player.SendErrorMessage("Invalid amount");
                         return;
                     }
 
-                    int itemAmount = args.Parameters.Count > 2 ? int.Parse(args.Parameters[2]) : 1;
+                    if (itemAmount < 1)
+                    {
+                        args.Player.SendErrorMessage("Amount must be greater than 0.");
+                        return;
+                    }
 
                     // Check Item
                     bool isThereAny = false;
@@ -107,7 +112,6 @@ namespace Skynomi.ShopSystem
                             args.Player.SendErrorMessage("This item can only be bought one at a time.");
                             return;
                         }
-                        itemAmount = 1;
                     }
 
                     decimal totalPrice = itemValue * itemAmount;
@@ -133,7 +137,7 @@ namespace Skynomi.ShopSystem
             {
                 if (!Skynomi.Utils.Util.CheckPermission(ShopSystem.Permissions.Sell, args)) return;
 
-                string usage = "Usage: /shop sell <item> [amount] <yes>";
+                string usage = "Usage: /shop sell <item> [amount]";
 
                 if (args.Parameters.Count < 2)
                 {
@@ -149,29 +153,25 @@ namespace Skynomi.ShopSystem
                 }
 
                 int amount = 1;
-                if (args.Parameters.Count > 3 && !int.TryParse(args.Parameters[2], out amount))
+                if (args.Parameters.Count > 2 && !int.TryParse(args.Parameters[2], out amount))
                 {
                     args.Player.SendErrorMessage("Invalid amount");
                     return;
                 }
 
-                if (args.Parameters[^1].ToLower() != "yes")
+                if (amount <= 0)
                 {
-                    args.Player.SendErrorMessage("Canceled.");
+                    args.Player.SendErrorMessage("Amount must be greater than 0.");
                     return;
                 }
 
-                var playerItem = args.Player.SelectedItem;
-
                 // Check Item
                 bool isThereAny = false;
-                string itemKey = "1";
                 decimal itemValue = 0;
                 foreach (var item in shopConfig.ShopItems)
                 {
                     if (itemID.ToString() == item.Key)
                     {
-                        itemKey = item.Key;
                         itemValue = item.Value.sellPrice;
                         isThereAny = true;
                         break;

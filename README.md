@@ -118,7 +118,7 @@ This command will show a list of all items that can be bought, along with their 
 **Usage**:
 `/shop buy <item> [amount]`
 
-- `<item>`: The name of the item you want to purchase.
+- `<item>`: The id of the item you want to purchase.
 - `[amount]`: The quantity of the item you want to purchase (optional, defaults to 1 if not specified).
 
 **Example:**
@@ -126,6 +126,23 @@ This command will show a list of all items that can be bought, along with their 
 ```
 /shop buy 4444 1
 ```
+
+#### `/shop sell`
+
+**Description**: Allows a player to sell an item back to the shop for virtual currency.
+
+**Usage**:
+`/shop sell <item> [amount]`
+
+- `<item>`: The id of the item you want to sell.
+- `[amount]`: The quantity of the item you want to sell (optional, defaults to 1 if not specified).
+
+**Example:**
+
+```
+/shop sell 4444 1
+```
+
 
 ---
 
@@ -185,6 +202,7 @@ Set up the following permissions to control access to the plugin features:
 | `/shop`            | `skynomi.shop`            |
 | `/shop list`       | `skynomi.shop.list`       |
 | `/shop buy`        | `skynomi.shop.buy`        |
+| `/shop sell`       | `skynomi.shop.sell`       |
 | `/rank up`         | `skynomi.rank.up`         |
 | `/rank down`       | `skynomi.rank.down`       |
 | `/rankutils list`  | `skynomi.rank.list`       |
@@ -257,8 +275,11 @@ See [Config Document](./Config.md) for this
 
 **Version 2.1.0**
 
-- Added `shop sell` command to allow players to sell items back to the shop.
+- Shop System: `v1.0.0` -> `v1.1.0`
+  - Added `shop sell` command to allow players to sell items back to the shop.
+  - Fix bug on `shop buy` and `shop sell` command working for amounts < 1.
 - Enhanced `CustomVoid` method to optionally return query results when `output` parameter is set to true.
+- Use async methods and improve error handling in Database class
 
 ## License
 
