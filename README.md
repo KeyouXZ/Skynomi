@@ -282,6 +282,8 @@ See [Config Document](./Config.md) for this
   - Enhanced `CustomVoid` method to optionally return query results when `output` parameter is set to true.
   - Use async methods and improve error handling in Database class
   - Remove MySQL keep alive connection
+- Rank System: `v1.1.0` -> `v1.1.1`
+  - Fix prefix & suffix using `UpdateGroup` instead of setting it manually
 
 ## License
 
