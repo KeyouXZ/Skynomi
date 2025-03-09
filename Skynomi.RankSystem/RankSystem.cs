@@ -9,7 +9,7 @@ namespace Skynomi.RankSystem
     {
         public string Name => "Rank System";
         public string Description => "Rank system extension for Skynomi";
-        public string Version => "1.1.0";
+        public string Version => "1.1.1";
         public string Author => "Keyou";
 
         private static RankSystem.Config rankConfig;
@@ -70,17 +70,9 @@ namespace Skynomi.RankSystem
                         TShock.Groups.DeleteGroup(name);
                     }
                     TShock.Groups.AddGroup(name, parent, TShock.Groups.GetGroupByName(parent != "" ? parent : "default").Permissions, "255,255,255");
-                }
 
-                // Assign prefix and suffix
-                var group = TShock.Groups.GetGroupByName(name);
-                if (group != null)
-                {
-                    group.Prefix = prefix;
-                    group.Suffix = suffix;
-                    group.ChatColor = chatColor;
-
-                    // Remove Permissions
+                    // Update Group
+                    string newPermissions = "";
                     if (parent == "")
                     {
                         var parentGroup = TShock.Groups.GetGroupByName("default");
@@ -91,15 +83,17 @@ namespace Skynomi.RankSystem
                             topermission += "," + permission;
                         }
 
-                        group.Permissions = topermission;
+                        newPermissions = topermission;
                     }
                     else if (rankConfig.useParent)
                     {
                         if (!string.IsNullOrEmpty(permission))
                         {
-                            group.Permissions = permission;
+                            newPermissions = permission;
                         }
                     }
+
+                    TShock.Groups.UpdateGroup(name, parent, TShock.Groups.GetGroupByName(parent != "" ? parent : "default").Permissions, chatColor, suffix, prefix);
                 }
 
                 counter++;

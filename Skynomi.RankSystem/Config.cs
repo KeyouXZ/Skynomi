@@ -50,7 +50,7 @@ namespace Skynomi.RankSystem
                 Suffix = "[i:4444]",
                 ChatColor = new int[] { 255, 255, 255 },
                 Cost = 100,
-                Permission = "tshock.item.spawn",
+                Permission = "",
                 Rewards = new Dictionary<string, int>
                 {
                     { "1", 1 },
@@ -64,7 +64,7 @@ namespace Skynomi.RankSystem
                 Suffix = "[i:4444]",
                 ChatColor = new int[] { 255, 255, 255 },
                 Cost = 200,
-                Permission = "tshock.item.give tshock.item.spawn",
+                Permission = "",
                 Rewards = new Dictionary<string, int>
                     {
                         { "1", 1 },
