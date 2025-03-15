@@ -90,6 +90,16 @@ This will send 500 units of virtual currency to the player named "Keyou".
 /listextension Shop
 ```
 
+#### `/skynomi`
+
+**Description**: Skynomi commands.
+
+**Usage**:
+`/skynomi <help/cache>`
+
+- `help`: Display help for Skynomi commands.
+- `cache <list/reload/save>`: List or reload the cache.
+
 ---
 
 ### Shop Extension
@@ -284,6 +294,16 @@ See [Config Document](./Config.md) for this
 - Rank System: `v1.1.0` -> `v1.1.1`
   - Fix prefix & suffix using `UpdateGroup` instead of setting it manually
 
+**Version 3.0.0**
+
+- Update to TShock 5.2.3
+- Skynomi: `v2.1.0` -> `v3.0.0`
+  - Change data type for balance (int -> long)
+  - Break: Using CacheManager to improve performance
+  - New Database configuration: `"Auto Save Interval (Seconds)"`
+- Shop System: `v1.1.0` -> `v1.1.1` & Rank System: `v1.1.1` -> `v1.1.2`
+  - Adjusted to be compatible with the latest version of Skynomi
+
 ## License
 
-This plugin is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+This plugin is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html).

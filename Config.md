@@ -403,6 +403,16 @@ This document details the configuration settings for the database system.
 | Default | "sqlite" |
 | Valid Values | "sqlite", "mysql" |
 
+### Auto Save Interval (Seconds)
+
+| Field | Value |
+|-------|--------|
+| Type | Number |
+| Description | Interval in seconds between automatic saves of the database |
+| Default | 600 |
+| Valid Range | 0- |
+| Example | `"Auto Save Interval (Seconds)": 600` |
+
 ## SQLite Configuration
 
 ### SQLite Database Path
@@ -461,6 +471,7 @@ This document details the configuration settings for the database system.
 ```json
 {
   "Database Type": "sqlite",
+  "Auto Save Interval (Seconds)": 600,
   "SQLite Database Path": "Skynomi.sqlite3",
   "MySqlHost": "localhost:3306",
   "MySqlDbName": "",
@@ -474,6 +485,7 @@ This document details the configuration settings for the database system.
 ```json
 {
   "Database Type": "mysql",
+  "Auto Save Interval (Seconds)": 600,
   "SQLite Database Path": "",
   "MySqlHost": "localhost:3306",
   "MySqlDbName": "skynomi_db",

@@ -60,7 +60,7 @@ namespace Skynomi.RankSystem
                         string nextRank = GetRankByIndex(nextIndex);
 
                         // Check user balance
-                        decimal balance = database.GetBalance(args.Player.Name);
+                        long balance = database.GetBalance(args.Player.Name);
                         int rankCost = rankConfig.Ranks[nextRank].Cost;
 
                         if (balance < rankCost)
@@ -69,9 +69,7 @@ namespace Skynomi.RankSystem
                             return;
                         }
                         // Give Player Rewards
-                        int highestRank = Convert.ToInt32(database.CustomString($@"
-                            SELECT HighestRank FROM Ranks WHERE Username = @Username
-                        ", new { Username = args.Player.Name }));
+                        int highestRank = Convert.ToInt32(Skynomi.Database.CacheManager.Cache["HighestRanks"].GetValue(args.Player.Name) ?? 0);
 
                         if ((rank + 1) > highestRank)
                         {
@@ -82,24 +80,11 @@ namespace Skynomi.RankSystem
                         }
 
                         // Set the Highest Level
-                        string databaseCommandText = "INSERT INTO Ranks (Username, HighestRank) Values (@Username, @HighestRank) ";
-                        if (Skynomi.Database.Database._databaseType == "mysql")
-                        {
-                            databaseCommandText += "ON DUPLICATE KEY UPDATE HighestRank = @HighestRank";
-                        }
-                        else if (Skynomi.Database.Database._databaseType == "sqlite")
-                        {
-                            databaseCommandText += "ON CONFLICT(Username) DO UPDATE SET HighestRank = @HighestRank";
-                        }
-                        database.CustomVoid(databaseCommandText, new
-                        {
-                            Username = args.Player.Name,
-                            HighestRank = (rank + 1)
+                        Skynomi.Database.CacheManager.Cache["HighestRanks"].SetValue(args.Player.Name, rank+1);
 
-                        });
                         database.RemoveBalance(args.Player.Name, rankCost);
                         TShock.UserAccounts.SetUserGroup(TShock.UserAccounts.GetUserAccountByName(args.Player.Name), "rank_" + (rank + 1));
-                        rankDatabase.UpdateRank(args.Player.Name, (rank + 1));
+                        Skynomi.Database.CacheManager.Cache["Ranks"].SetValue(args.Player.Name, rank+1);
 
                         if (rankConfig.announceRankUp)
                         {
@@ -137,7 +122,8 @@ namespace Skynomi.RankSystem
                         int rankCost = rankConfig.Ranks[GetRankByIndex(nextIndex)].Cost;
 
                         database.AddBalance(args.Player.Name, rankCost);
-                        rankDatabase.UpdateRank(args.Player.Name, (rank - 1));
+                        // rankDatabase.UpdateRank(args.Player.Name, (rank - 1));
+                        Skynomi.Database.CacheManager.Cache["Ranks"].SetValue(args.Player.Name, rank -1);
                         TShock.UserAccounts.SetUserGroup(TShock.UserAccounts.GetUserAccountByName(args.Player.Name), "rank_" + (rank - 1));
                         args.Player.SendInfoMessage($"Your rank has been downgraded to {nextRank} and get {Skynomi.Utils.Util.CurrencyFormat(rankCost)}.");
                     }

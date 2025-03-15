@@ -35,6 +35,9 @@ namespace Skynomi.RankSystem
                     cmd.ExecuteNonQueryAsync();
                 }
             }
+
+            RankInitialize();
+            HighestRankInitialize();
         }
 
         public static void CreatePlayer(string username)
@@ -49,59 +52,46 @@ namespace Skynomi.RankSystem
                 }
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@Username", username);
-                // cmd.ExecuteNonQuery();
-                cmd.ExecuteNonQueryAsync();
-
-                return;
+                cmd.ExecuteNonQuery();
             }
+            
+            if (!Skynomi.Database.CacheManager.Cache["Ranks"].TryGetValue(username, out _))
+            {
+                Skynomi.Database.CacheManager.Cache["Ranks"].SetValue(username, 0);
+            }
+        }
+
+        private static void RankInitialize()
+        {
+            var Rankcache = Skynomi.Database.CacheManager.Cache["Ranks"];
+            Rankcache.MysqlQuery = "SELECT Username, Rank FROM Ranks";
+            Rankcache.SqliteQuery = Rankcache.MysqlQuery;
+            Rankcache.SaveMysqlQuery = "INSERT INTO Ranks (Username, Rank) VALUES (@Param1, @Param2) ON DUPLICATE KEY UPDATE Rank = @Param2";
+            Rankcache.SaveSqliteQuery = "INSERT INTO Ranks (Username, Rank) VALUES (@Param1, @Param2) ON CONFLICT(Username) DO UPDATE SET Rank = @Param2";
+
+            Rankcache.Init();
+        }
+
+        private static void HighestRankInitialize()
+        {
+            var Rankcache = Skynomi.Database.CacheManager.Cache["HighestRanks"];
+            Rankcache.MysqlQuery = "SELECT Username, HighestRank FROM Ranks";
+            Rankcache.SqliteQuery = Rankcache.MysqlQuery;
+            Rankcache.SaveMysqlQuery = "INSERT INTO Ranks (Username, HighestRank) VALUES (@Param1, @Param2) ON DUPLICATE KEY UPDATE HighestRank = @Param2";
+            Rankcache.SaveSqliteQuery = "INSERT INTO Ranks (Username, HighestRank) VALUES (@Param1, @Param2) ON CONFLICT(Username) DO UPDATE SET HighestRank = @Param2";
+
+            Rankcache.Init();
         }
 
         public int GetRank(string username)
         {
-            using (var cmd = db.CreateCommand())
-            {
-                cmd.CommandText = "SELECT Rank FROM Ranks WHERE Username = @Username";
-                cmd.Parameters.AddWithValue("@Username", username);
-
-                object result = cmd.ExecuteScalar();
-                if (result != null && result != DBNull.Value)
-                {
-                    return Convert.ToInt32(result);
-                }
-                else
-                {
-                    cmd.CommandText = "INSERT INTO Ranks (Username, Rank) VALUES (@Username, 0)";
-                    // cmd.ExecuteNonQuery();
-                    cmd.ExecuteNonQueryAsync();
-                    return 0;
-                }
-            }
+            var rankValue = Skynomi.Database.CacheManager.Cache["Ranks"].GetValue(username);
+            return rankValue != null ? Convert.ToInt32(rankValue) : 0;
         }
 
         public void UpdateRank(string username, int rank)
         {
-            using (var cmd = db.CreateCommand())
-            {
-                cmd.CommandText = @"
-                    INSERT INTO Ranks (Username, Rank)
-                    VALUES (@Username, @Rank)";
-
-                if (_databaseType == "mysql")
-                {
-                    cmd.CommandText += @"
-                        ON DUPLICATE KEY UPDATE Rank = @Rank";
-                }
-                else if (_databaseType == "sqlite")
-                {
-                    cmd.CommandText += @"
-                        ON CONFLICT(Username) DO UPDATE SET Rank = @Rank";
-                }
-
-                cmd.Parameters.AddWithValue("@Username", username);
-                cmd.Parameters.AddWithValue("@Rank", rank);
-                // cmd.ExecuteNonQuery();
-                cmd.ExecuteNonQueryAsync();
-            }
+            Skynomi.Database.CacheManager.Cache["Ranks"].SetValue(username, rank);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Skynomi.ShopSystem
     {
         public string Name => "Shop System";
         public string Description => "Shop system extension for Skynomi";
-        public string Version => "1.1.0";
+        public string Version => "1.1.1";
         public string Author => "Keyou";
 
         private static Skynomi.Config config;

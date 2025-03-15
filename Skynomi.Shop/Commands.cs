@@ -82,7 +82,7 @@ namespace Skynomi.ShopSystem
                     // Check Item
                     bool isThereAny = false;
                     string itemKey = "1";
-                    decimal itemValue = 0;
+                    int itemValue = 0;
                     foreach (var item in shopConfig.ShopItems)
                     {
                         if (args.Parameters[1] == item.Key)
@@ -102,7 +102,7 @@ namespace Skynomi.ShopSystem
                     }
 
                     // check balance
-                    decimal balance = database.GetBalance(args.Player.Name);
+                    long balance = database.GetBalance(args.Player.Name);
                     int itemId = int.Parse(itemKey);
 
                     if (TShock.Utils.GetItemById(int.Parse(itemKey)).maxStack == 1)
@@ -114,7 +114,7 @@ namespace Skynomi.ShopSystem
                         }
                     }
 
-                    decimal totalPrice = itemValue * itemAmount;
+                    long totalPrice = itemValue * itemAmount;
                     if (balance < totalPrice)
                     {
                         args.Player.SendErrorMessage($"You do not have enough {config.Currency} to buy this item. (Need {Skynomi.Utils.Util.CurrencyFormat((int)(totalPrice - balance))} more)");
@@ -167,7 +167,7 @@ namespace Skynomi.ShopSystem
 
                 // Check Item
                 bool isThereAny = false;
-                decimal itemValue = 0;
+                int itemValue = 0;
                 foreach (var item in shopConfig.ShopItems)
                 {
                     if (itemID.ToString() == item.Key)
@@ -229,7 +229,7 @@ namespace Skynomi.ShopSystem
                     }
                 }
 
-                decimal totalPrice = itemValue * amount;
+                long totalPrice = itemValue * amount;
                 args.Player.SendInfoMessage($"You have sell [i/s{amount}:{itemID}] for {Skynomi.Utils.Util.CurrencyFormat((int)totalPrice)}");
                 database.AddBalance(args.Player.Name, (int)totalPrice);
             }
