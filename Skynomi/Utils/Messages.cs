@@ -16,8 +16,8 @@
 
         #region CacheManager
         public static readonly string CacheReloaded = $"{Name} Cache reloaded";
-        public static readonly string CacheSaving = $"{Name} Saving database:";
-        public static readonly string CacheSaved = $"{Name} Database saved";
+        public static readonly string CacheSaving = $"{Name} Saving cache(s):";
+        public static readonly string CacheSaved = $"{Name} Cache(s) saved";
         #endregion
     }
 }

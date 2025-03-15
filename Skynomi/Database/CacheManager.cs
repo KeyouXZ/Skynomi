@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using TShockAPI;
 
 namespace Skynomi.Database
@@ -64,6 +65,12 @@ namespace Skynomi.Database
                 return cacheDict.TryGetValue(subKey, out value);
             }
 
+            public object? GetValue(string subKey)
+            {
+                var cacheDict = GetOrCreateCache();
+                return cacheDict.TryGetValue(subKey, out var value) ? value : null;
+            }
+
             public string SqliteQuery
             {
                 get => GetOrCreateCache().TryGetValue("SqliteQuery", out var value) ? value as string : null;
@@ -100,6 +107,7 @@ namespace Skynomi.Database
                         return false;
                     }
 
+                    Console.WriteLine(Skynomi.Utils.Messages.Name + " Init " + _key + " cache...");
                     var result = db.CustomVoid(query, output: true);
 
                     var match = Regex.Match(query, @"SELECT\s*(.*?)\s*FROM", RegexOptions.IgnoreCase);
@@ -152,6 +160,7 @@ namespace Skynomi.Database
             {
                 try
                 {
+                    Console.WriteLine(Skynomi.Utils.Messages.Name + " Saving " + _key + "...");
                     var query = Skynomi.Database.Database._databaseType == "sqlite" ? SaveSqliteQuery : SaveMysqlQuery;
 
                     if (string.IsNullOrEmpty(query))
@@ -169,34 +178,43 @@ namespace Skynomi.Database
 
                     var cacheDict = GetOrCreateCache();
 
+                    int counter = 0;
                     var excludedKeys = new HashSet<string> { "MysqlQuery", "SaveMysqlQuery", "SqliteQuery", "SaveSqliteQuery" };
                     foreach (var kvp in cacheDict.Where(kvp => !excludedKeys.Contains(kvp.Key)))
                     {
                         if (!lastCacheDict.TryGetValue(kvp.Key, out var lastValue) || !Equals(lastValue, kvp.Value))
                         {
-                            var parameters = Regex.Matches(query, @"@\w+")
-                            .Cast<Match>()
-                            .ToDictionary(
-                                match => match.Value,
-                                match => match.Value switch
-                                {
-                                    "@Param1" => kvp.Key,
-                                    "@Param2" => kvp.Value,
-                                    _ => throw new Exception($"Unknown parameter: {match.Value}")
-                                });
+                            counter++;
+                            using (var cmd = db.CreateCommand())
+                            {
+                                cmd.CommandText = query;
 
-                            db.CustomVoid(query, new { Param1 = parameters["@Param1"], Param2 = parameters["@Param2"] });
+                                cmd.Parameters.Clear();
+                                cmd.Parameters.AddWithValue("@Param1", kvp.Key);
+                                cmd.Parameters.AddWithValue("@Param2", kvp.Value);
+
+                                cmd.ExecuteNonQuery();
+                            }
 
                             lastCacheDict[kvp.Key] = kvp.Value;
                         }
                     }
 
+                    var toSavecacheDict = GetOrCreateCache()
+                        .Where(kvp => !excludedKeys.Contains(kvp.Key))
+                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                    string json = JsonConvert.SerializeObject(toSavecacheDict, Formatting.Indented);
+                    string path = Path.Combine(TShock.SavePath + "/Skynomi/cache/" + _key + "/");
+                    Directory.CreateDirectory(path);
+                    string filePath = Path.Combine(path, $"{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.json");
+                    File.WriteAllText(filePath, json);
+                    
                     return true;
                 }
                 catch (Exception ex)
                 {
                     TShock.Log.ConsoleError($"Failed to save cache: {ex.Message}");
-                    TShock.Log.ConsoleError($"Failed to save cache: {ex}");
                     return false;
                 }
             }
@@ -226,9 +244,9 @@ namespace Skynomi.Database
         {
             try
             {
-                foreach (var cache in _cache.Values)
+                foreach (var key in _cache.Keys)
                 {
-                    if (cache is CacheEntry cacheEntry)
+                    if (Cache[key] is CacheEntry cacheEntry)
                     {
                         cacheEntry.Save();
                     }
@@ -251,13 +269,9 @@ namespace Skynomi.Database
                     while (true)
                     {
                         await Task.Delay(intervalInSeconds * 1000);
-                        foreach (var cache in _cache.Values)
-                        {
-                            if (cache is CacheEntry cacheEntry)
-                            {
-                                cacheEntry.Save();
-                            }
-                        }
+                        Console.WriteLine(Skynomi.Utils.Messages.CacheSaving);
+                        Skynomi.Database.CacheManager.SaveAll();
+                        TShock.Log.ConsoleInfo(Skynomi.Utils.Messages.CacheSaved);
                     }
                 });
                 return true;

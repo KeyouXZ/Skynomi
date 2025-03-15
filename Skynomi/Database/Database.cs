@@ -173,11 +173,7 @@ namespace Skynomi.Database
 
         public long GetBalance(string username)
         {
-            if (CacheManager.Cache["SkynomiBalanceCache"].TryGetValue(username, out var cachedBalance))
-            {
-                return (long)cachedBalance;
-            }
-            return 0;
+            return Convert.ToInt64(CacheManager.Cache["SkynomiBalanceCache"].GetValue(username) ?? 0);
         }
 
         public void AddBalance(string username, long amount)
