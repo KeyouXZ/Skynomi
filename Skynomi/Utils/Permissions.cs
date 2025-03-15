@@ -9,5 +9,7 @@
         public static readonly string AdminBalance = "skynomi.admin.balance";
 
         public static readonly string ListExtension = "skynomi.listextension";
+
+        public static readonly string Skynomi = "skynomi.skynomi";
     }
 }

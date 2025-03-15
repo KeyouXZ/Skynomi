@@ -8,6 +8,9 @@ namespace Skynomi.Database
         [JsonProperty("Database Type")]
         public string databaseType { get; set; } = "sqlite";
 
+        [JsonProperty("Auto Save Interval (Seconds)")]
+        public int autoSaveInterval { get; set; } = 600;
+
         [JsonProperty("SQLite Database Path")]
         public string databasePath { get; set; } = "Skynomi.sqlite3";
 

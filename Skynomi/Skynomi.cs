@@ -14,7 +14,7 @@ namespace Skynomi
         public override string Author => "Keyou";
         public override string Description => "Terraria Economy System";
         public override string Name => "Skynomi";
-        public override Version Version => new Version(2, 1, 0);
+        public override Version Version => new Version(3, 0, 0);
 
         private Skynomi.Config config;
         private Skynomi.Database.Database database;
@@ -33,6 +33,7 @@ namespace Skynomi
             config = Config.Read();
             database = new Skynomi.Database.Database();
             database.InitializeDatabase();
+            database.BalanceInitialize();
 
             ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
             ServerApi.Hooks.NpcKilled.Register(this, OnNpcKilled);
@@ -57,6 +58,9 @@ namespace Skynomi
                 GeneralHooks.ReloadEvent -= Reload;
                 GetDataHandlers.KillMe -= PlayerDead;
 
+                Console.WriteLine(Skynomi.Utils.Messages.CacheSaving);
+                Skynomi.Database.CacheManager.SaveAll();
+                TShock.Log.ConsoleInfo(Skynomi.Utils.Messages.CacheSaved);
                 Skynomi.Database.Database.Close();
 
                 // Extension
@@ -162,7 +166,7 @@ namespace Skynomi
                 foreach (var (playerName, playerDamage) in interaction.DamageByPlayers)
                 {
                     double damagePercentage = (double)playerDamage / totalDamage; // Percentage of total damage
-                    int playerReward = (int)(baseReward * damagePercentage);
+                    long playerReward = (long)(baseReward * damagePercentage);
 
                     double chance = random.NextDouble() * 100;
                     if (chance > config.RewardChance)
@@ -200,8 +204,8 @@ namespace Skynomi
             if (args.Player.IsLoggedIn && config.DropOnDeath > 0)
             {
 
-                decimal playerBalance = database.GetBalance(args.Player.Name);
-                var toLose = (int)(playerBalance * (config.DropOnDeath / 100));
+                long playerBalance = database.GetBalance(args.Player.Name);
+                var toLose = (long)(playerBalance * (config.DropOnDeath / 100));
                 database.RemoveBalance(args.Player.Name, toLose);
                 args.Player.SendMessage($"You lost {Skynomi.Utils.Util.CurrencyFormat(toLose)} from dying!", Color.Orange);
                 return;
@@ -214,12 +218,12 @@ namespace Skynomi
 
         #region Floating Text
         private CancellationTokenSource? floatingTextCancelToken;
-        private void ShowFloatingText(TSPlayer player, int amount, string from)
+        private void ShowFloatingText(TSPlayer player, long amount, string from)
         {
             if (player?.Active != true)
                 return;
 
-            decimal balance = database.GetBalance(player.Name);
+            long balance = database.GetBalance(player.Name);
 
             var position = player.TPlayer.position;
 
@@ -233,7 +237,7 @@ namespace Skynomi
                 "+",
                 Skynomi.Utils.Util.CurrencyFormat(amount).ToString(),
                 $"[c/00ff26:for {from}]" + RepeatEmptySpaces(100),
-                Skynomi.Utils.Util.CurrencyFormat((int)balance).ToString(),
+                Skynomi.Utils.Util.CurrencyFormat(balance).ToString(),
                 RepeatLineBreaks(69),
                 RepeatLineBreaks(1),
                 RepeatEmptySpaces(100));

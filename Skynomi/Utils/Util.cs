@@ -38,7 +38,7 @@ namespace Skynomi.Utils
         }
 
         #region Currency
-        public static string CurrencyFormat(int amount)
+        public static string CurrencyFormat(long amount)
         {   
             string formattedAmount;
             if (config.AbbsreviasiNumeric) {
@@ -48,8 +48,8 @@ namespace Skynomi.Utils
             }
             return config.CurrencyFormat.Replace("{currency}", config.Currency).Replace("{amount}", formattedAmount.ToString());
         }
-
-        private static string FormatNumber(int num)
+        
+       private static string FormatNumber(long num)
         {
             if (num >= 1_000_000_000)
                 return (num / 1_000_000_000D).ToString("0.#") + "B";

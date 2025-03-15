@@ -1,4 +1,5 @@
-﻿using TShockAPI;
+﻿using System.Text;
+using TShockAPI;
 
 namespace Skynomi
 {
@@ -24,6 +25,11 @@ namespace Skynomi
             {
                 AllowServer = true,
                 HelpText = "Admin commands:\nsetbal <player> <amount> - Sets the balance of a player."
+            });
+            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Skynomi, SkynomiCmd, "skynomi")
+            {
+                AllowServer = true,
+                HelpText = "Skynomi commands:\nreload - Reloads the plugin."
             });
         }
 
@@ -64,12 +70,12 @@ namespace Skynomi
                 return;
             }
 
-            decimal balancePlayer = database.GetBalance(args.Player.Name);
-            decimal balanceTarget = database.GetBalance(targetPlayer.Name);
+            long balancePlayer = database.GetBalance(args.Player.Name);
+            long balanceTarget = database.GetBalance(targetPlayer.Name);
 
 
             // Check if the player has enough balance to pay
-            if (!int.TryParse(args.Parameters[1], out int amount))
+            if (!long.TryParse(args.Parameters[1], out long amount))
             {
                 args.Player.SendErrorMessage("Invalid amount.");
                 return;
@@ -101,7 +107,7 @@ namespace Skynomi
                 if (args.Player == null)
                     return;
 
-                
+
                 string targetUsername = args.Parameters.Count > 0 ? args.Parameters[0] : args.Player.Name;
 
                 var targetPlayer = TShock.Players
@@ -120,7 +126,7 @@ namespace Skynomi
                     return;
                 }
 
-                decimal balance = database.GetBalance(targetPlayer.Name);
+                long balance = database.GetBalance(targetPlayer.Name);
 
                 if (args.Parameters.Count == 0)
                 {
@@ -131,7 +137,7 @@ namespace Skynomi
                     targetUsername = $"{targetPlayer.Name}'s";
                 }
 
-                args.Player.SendInfoMessage($"{targetUsername} balance: {Skynomi.Utils.Util.CurrencyFormat((int)balance)}");
+                args.Player.SendInfoMessage($"{targetUsername} balance: {Skynomi.Utils.Util.CurrencyFormat(balance)}");
             }
             catch (Exception ex)
             {
@@ -175,7 +181,7 @@ namespace Skynomi
                     return;
                 }
 
-                decimal balanceTarget = database.GetBalance(targetPlayer.Name);
+                long balanceTarget = database.GetBalance(targetPlayer.Name);
 
                 if (!int.TryParse(args.Parameters[2], out int amount))
                 {
@@ -191,6 +197,122 @@ namespace Skynomi
                 args.Player.SendErrorMessage("Usage: /admin <command>");
                 args.Player.SendSuccessMessage("Command list:");
                 args.Player.SendErrorMessage(usage);
+                return;
+            }
+        }
+
+        public static void SkynomiCmd(CommandArgs args)
+        {
+            string usage = "Usage: /skynomi <command>";
+
+            var sb = new StringBuilder();
+            sb.AppendLine("Command list:");
+            sb.AppendLine("cache <list/reload/save> - List or reload the cache");
+
+            if (args.Parameters.Count == 0)
+            {
+                args.Player.SendInfoMessage(usage);
+                return;
+            }
+            else if (args.Parameters[0] == "help")
+            {
+                args.Player.SendInfoMessage(sb.ToString());
+                return;
+            }
+            else if (args.Parameters[0] == "cache")
+            {
+                #region Cache
+                string cacheUsage = "Usage: /skynomi cache <list/reload>";
+                if (args.Parameters.Count < 2)
+                {
+                    args.Player.SendInfoMessage(cacheUsage);
+                    return;
+                }
+                else if (args.Parameters[1] == "list")
+                {
+                    var caches = Skynomi.Database.CacheManager.GetAllCacheKeys();
+                    var cacheSb = new StringBuilder();
+                    cacheSb.AppendLine("Cache list:");
+                    foreach (var cache in caches)
+                    {
+                        cacheSb.AppendLine($"- {cache}");
+                    }
+                    args.Player.SendInfoMessage(cacheSb.ToString());
+                    return;
+                }
+                else if (args.Parameters[1] == "reload")
+                {
+                    if (args.Parameters.Count < 3)
+                    {
+                        args.Player.SendErrorMessage("Usage: /skynomi cache reload <cache> [save]");
+                        return;
+                    }
+
+                    if (!Skynomi.Database.CacheManager.GetAllCacheKeys().Contains(args.Parameters[2]))
+                    {
+                        args.Player.SendErrorMessage("Cache not found.");
+                        return;
+                    }
+
+                    var cache = Skynomi.Database.CacheManager.Cache[args.Parameters[2]];
+
+                    bool save;
+                    if (args.Parameters.Count > 3)
+                    {
+                        if (bool.TryParse(args.Parameters[3], out save)) {}
+                        else
+                        {
+                            args.Player.SendErrorMessage("Invalid bool for [save].");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        save = false;
+                    }
+                    bool status = cache.Reload(save);
+
+                    if (status)
+                    {
+                        args.Player.SendSuccessMessage($"Reloaded {args.Parameters[2]} cache" + (!save ? " without saving" : ""));
+                    }
+                    return;
+                }
+                else if (args.Parameters[1] == "save")
+                {
+                    #region Save
+                    if (args.Parameters.Count < 3)
+                    {
+                        args.Player.SendErrorMessage("Usage: /skynomi cache save <cache>");
+                        return;
+                    }
+
+                    if (!Skynomi.Database.CacheManager.GetAllCacheKeys().Contains(args.Parameters[2]))
+                    {
+                        args.Player.SendErrorMessage("Cache not found.");
+                        return;
+                    }
+
+                    var cache = Skynomi.Database.CacheManager.Cache[args.Parameters[2]];
+                    bool status = cache.Save();
+
+                    if (status)
+                    {
+                        args.Player.SendSuccessMessage($"Saved {args.Parameters[2]} cache");
+                    }
+                    return;
+                    #endregion
+                }
+                else
+                {
+                    args.Player.SendErrorMessage(cacheUsage);
+                    return;
+                }
+                #endregion
+            }
+            else
+            {
+                args.Player.SendErrorMessage("Usage: /skynomi <command>");
                 return;
             }
         }
