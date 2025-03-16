@@ -119,7 +119,7 @@ namespace Skynomi.Utils
                                 $"[c/0000FF:Name:] [c/FFFFFF:{extension.Name}]\n" +
                                 $"[c/0000FF:Description:] [c/FFFFFF:{extension.Description}]\n" +
                                 $"[c/0000FF:Version:] [c/FFFFFF:{extension.Version}]\n" +
-                                $"[c/0000FF:Build Version:] [c/FFFFFF:{typeof(SkynomiPlugin).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion}]\n" +
+                                $"[c/0000FF:Skynomi Version:] [c/FFFFFF:{extension.GetType().Assembly.GetReferencedAssemblies().FirstOrDefault(a => a.Name == "Skynomi")?.Version?.ToString() ?? "Unknown"}]\n" +
                                 $"[c/0000FF:Author:] [c/FFFFFF:{extension.Author}]\n" +
                                 $"[c/0000FF:Supports Reload:] [c/FFFFFF:{(isReloadable ? "Yes" : "No")}]\n" +
                                 $"[c/0000FF:Supports Dispose:] [c/FFFFFF:{(isDisposable ? "Yes" : "No")}]\n" +
