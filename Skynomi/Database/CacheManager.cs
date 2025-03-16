@@ -270,8 +270,8 @@ namespace Skynomi.Database
                         : con as MySql.Data.MySqlClient.MySqlConnection;
 
                     // Reopen connection
-                    database?.CloseAsync();
-                    database?.OpenAsync();
+                    database?.Close();
+                    database?.Open();
 
                     using (var transaction = database?.BeginTransaction())
                     {
@@ -291,7 +291,7 @@ namespace Skynomi.Database
                                     cmd.CommandText = "DELETE FROM " + table + " WHERE" + keyColumn + " = @key";
                                     cmd.Parameters.Clear();
                                     cmd.AddParameter("@key", new { key });
-                                    cmd.ExecuteNonQueryAsync();
+                                    cmd.ExecuteNonQuery();
 
                                     ToRemove = ToRemove.Except(new string[] { key }).ToArray();
                                 }
@@ -334,19 +334,19 @@ namespace Skynomi.Database
                                         // }
                                         // #endregion
 
-                                        cmd.ExecuteNonQueryAsync();
+                                        cmd.ExecuteNonQuery();
 
                                         lastCacheDict[kvp.Key] = kvp.Value;
                                     }
                                 }
                             }
-                            transaction?.CommitAsync();
-                            database?.CloseAsync();
+                            transaction?.Commit();
+                            database?.Close();
                         }
                         catch (Exception)
                         {
-                            transaction?.RollbackAsync();
-                            database?.CloseAsync();
+                            transaction?.Rollback();
+                            database?.Close();
                             throw;
                         }
                     }
