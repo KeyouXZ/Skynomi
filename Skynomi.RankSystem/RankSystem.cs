@@ -33,6 +33,7 @@ namespace Skynomi.RankSystem
             if (tempConf != rankConfig.useParent)
             {
                 TShock.Log.ConsoleWarn(RankSystem.Messages.ParentSettingChanged);
+                rankConfig.useParent = tempConf;
             }
         }
 
