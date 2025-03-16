@@ -298,16 +298,18 @@ See [Config Document](./Config.md) for this
 
 - Update to TShock 5.2.3
 - Skynomi: `v2.1.0` -> `v3.0.0`
-  - Change data type for balance (int -> long)
+  - Change data type for balance (decimal -> long)
   - Break: Using CacheManager to improve performance
   - New Database configuration: `"Auto Save Interval (Seconds)"`
   - Added `skynomi` command to manage the plugin
   - Improved database query & skynomi performance
+  - Remove `CustomVoidAsync`, `CustomString`, `CustomStringAsync`, `CustomDecimal`, `CustomDecimalAsync`, `AddParamaters` and all related to async method from Database class
+  - Update version handling to use Version type instead of string
 - Shop System: `v1.1.0` -> `v1.1.1`
   - Adjusted to be compatible with the latest version of Skynomi
 - Rank System: `v1.1.1` -> `v1.1.2`
   - Adjusted to be compatible with the latest version of Skynomi
-  - Improve rank system performance
+  - Improve rank system performance & fix rank system configuration bug
 
 ## License
 
