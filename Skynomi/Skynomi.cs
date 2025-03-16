@@ -53,6 +53,9 @@ namespace Skynomi
         {
             if (disposing)
             {
+                // Extension
+                Skynomi.Utils.Loader.Dispose();
+                
                 ServerApi.Hooks.NpcKilled.Deregister(this, OnNpcKilled);
                 ServerApi.Hooks.NpcStrike.Deregister(this, OnNpcHit);
                 GeneralHooks.ReloadEvent -= Reload;
@@ -64,8 +67,6 @@ namespace Skynomi
                 TShock.Log.ConsoleInfo(Skynomi.Utils.Messages.CacheSaved);
                 Skynomi.Database.Database.Close();
 
-                // Extension
-                Skynomi.Utils.Loader.Dispose();
             }
             base.Dispose(disposing);
         }

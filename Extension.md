@@ -28,7 +28,7 @@ namespace Skynomi.Extensions
     {
         public string Name => "My Extension";
         public string Description => "A simple Skynomi extension.";
-        public string Version => "1.0.0";
+        public Version Version => new Version(1, 0, 0);
         public string Author => "YourName";
 
         public void Initialize()

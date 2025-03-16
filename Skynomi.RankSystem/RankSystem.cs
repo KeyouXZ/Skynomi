@@ -9,7 +9,7 @@ namespace Skynomi.RankSystem
     {
         public string Name => "Rank System";
         public string Description => "Rank system extension for Skynomi";
-        public string Version => "1.1.2";
+        public Version Version => new Version(1, 1, 2);
         public string Author => "Keyou";
 
         private static RankSystem.Config rankConfig;

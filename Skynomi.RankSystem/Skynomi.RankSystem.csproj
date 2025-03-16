@@ -10,6 +10,14 @@
     <Nullable>enable</Nullable>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
+
+  <PropertyGroup>
+		<Version>1.1.2</Version>
+		<FileVersion>1.1.2.0</FileVersion>
+		<AssemblyVersion>1.1.2.0</AssemblyVersion>
+		<InformationalVersion>1.1.2</InformationalVersion>
+	</PropertyGroup>
+
   <ItemGroup>
 		<PackageReference Include="TShock" Version="5.2.3" />
 	</ItemGroup>

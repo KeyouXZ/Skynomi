@@ -12,7 +12,7 @@ namespace Skynomi.Utils
         {
             string Name { get; }
             string Description { get; }
-            string Version { get; }
+            Version Version { get; }
             string Author { get; }
             void Initialize();
         }
@@ -31,7 +31,6 @@ namespace Skynomi.Utils
         {
             void PostInitialize(EventArgs args);
         }
-
 
         private static List<ISkynomiExtension> _loadedExtensions = new List<ISkynomiExtension>();
 
@@ -62,8 +61,8 @@ namespace Skynomi.Utils
                         var instance = Activator.CreateInstance(type) as ISkynomiExtension;
                         if (instance != null)
                         {
-                            _loadedExtensions.Add(instance);
                             instance.Initialize();
+                            _loadedExtensions.Add(instance);
                             Console.WriteLine($"{Skynomi.Utils.Messages.Name} Info extension: {instance.Name} v{instance.Version} by {instance.Author}");
                         }
                         else
@@ -94,8 +93,9 @@ namespace Skynomi.Utils
                 string text = "[c/00FF00:Loaded Extensions:]";
                 int counter = 0;
                 foreach (var extension in _loadedExtensions)
-                {   counter++;
-                    text += $"\n{counter}. [c/00AAFF:{extension.Name}] [c/FFFFFF:v{extension.Version}] by [c/AAAAAA:{extension.Author}]";
+                {
+                    counter++;
+                    text += $"\n{counter}. [c/00AAFF:{extension.Name}] [c/FFFFFF:v{extension.Version.ToString()}] by [c/AAAAAA:{extension.Author}]";
                 }
 
                 args.Player.SendMessage(text, Color.White);
@@ -119,6 +119,7 @@ namespace Skynomi.Utils
                                 $"[c/0000FF:Name:] [c/FFFFFF:{extension.Name}]\n" +
                                 $"[c/0000FF:Description:] [c/FFFFFF:{extension.Description}]\n" +
                                 $"[c/0000FF:Version:] [c/FFFFFF:{extension.Version}]\n" +
+                                $"[c/0000FF:Build Version:] [c/FFFFFF:{typeof(SkynomiPlugin).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion}]\n" +
                                 $"[c/0000FF:Author:] [c/FFFFFF:{extension.Author}]\n" +
                                 $"[c/0000FF:Supports Reload:] [c/FFFFFF:{(isReloadable ? "Yes" : "No")}]\n" +
                                 $"[c/0000FF:Supports Dispose:] [c/FFFFFF:{(isDisposable ? "Yes" : "No")}]\n" +
