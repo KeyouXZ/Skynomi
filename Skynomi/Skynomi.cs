@@ -59,6 +59,7 @@ namespace Skynomi
                 GetDataHandlers.KillMe -= PlayerDead;
 
                 Console.WriteLine(Skynomi.Utils.Messages.CacheSaving);
+                Skynomi.Database.CacheManager.StopAutoSave();
                 Skynomi.Database.CacheManager.SaveAll();
                 TShock.Log.ConsoleInfo(Skynomi.Utils.Messages.CacheSaved);
                 Skynomi.Database.Database.Close();

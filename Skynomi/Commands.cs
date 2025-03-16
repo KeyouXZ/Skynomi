@@ -26,10 +26,10 @@ namespace Skynomi
                 AllowServer = true,
                 HelpText = "Admin commands:\nsetbal <player> <amount> - Sets the balance of a player."
             });
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Skynomi, SkynomiCmd, "skynomi")
+            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Skynomi, SkynomiCmd, "skynomi", "sk")
             {
                 AllowServer = true,
-                HelpText = "Skynomi commands:\nreload - Reloads the plugin."
+                HelpText = "Use /skynomi help to display all commands."
             });
         }
 
@@ -41,6 +41,7 @@ namespace Skynomi
         // Commands
         public static void Pay(CommandArgs args)
         {
+            #region Pay
             if (args.Player == null)
                 return;
 
@@ -98,10 +99,12 @@ namespace Skynomi
 
             args.Player.SendInfoMessage($"You have paid {Skynomi.Utils.Util.CurrencyFormat(amount)} to {targetPlayer.Name}.");
             targetPlayer.SendInfoMessage($"You have received {Skynomi.Utils.Util.CurrencyFormat(amount)} from {args.Player.Name}.");
+            #endregion
         }
 
         public static void Balance(CommandArgs args)
         {
+            #region Balance
             try
             {
                 if (args.Player == null)
@@ -138,6 +141,7 @@ namespace Skynomi
                 }
 
                 args.Player.SendInfoMessage($"{targetUsername} balance: {Skynomi.Utils.Util.CurrencyFormat(balance)}");
+                #endregion
             }
             catch (Exception ex)
             {
@@ -160,6 +164,7 @@ namespace Skynomi
             }
             else if (args.Parameters[0] == "setbal")
             {
+                #region Setbal
                 if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.AdminBalance, args)) return;
                 string SetbalUsage = "Usage: /admin setbal <player> <amount>";
 
@@ -191,6 +196,7 @@ namespace Skynomi
 
                 database.AddBalance(targetPlayer.Name, (int)amount);
                 args.Player.SendSuccessMessage($"Successfully gave {Skynomi.Utils.Util.CurrencyFormat(amount)} to {targetUsername}");
+                #endregion
             }
             else
             {
@@ -207,7 +213,7 @@ namespace Skynomi
 
             var sb = new StringBuilder();
             sb.AppendLine("Command list:");
-            sb.AppendLine("cache <list/reload/save> - List or reload the cache");
+            sb.AppendLine("- cache <command/help> - Cache commands");
 
             if (args.Parameters.Count == 0)
             {
@@ -222,10 +228,22 @@ namespace Skynomi
             else if (args.Parameters[0] == "cache")
             {
                 #region Cache
-                string cacheUsage = "Usage: /skynomi cache <list/reload>";
+                string cacheUsage = "Usage: /skynomi cache <command/help>";
                 if (args.Parameters.Count < 2)
                 {
                     args.Player.SendInfoMessage(cacheUsage);
+                    return;
+                }
+                else if (args.Parameters[1] == "help")
+                {
+                    var cacheSb = new StringBuilder();
+                    cacheSb.AppendLine("Cache commands:");
+                    cacheSb.AppendLine("- list - List all cache keys");
+                    cacheSb.AppendLine("- reload <cache> [save] - Reload all cache data from the database");
+                    cacheSb.AppendLine("- save <cache> - Save all cache data to the database");
+                    cacheSb.AppendLine("- reloadall [save] - Reload all cache data from the database");
+                    cacheSb.AppendLine("- saveall - Save all cache data to the database");
+                    args.Player.SendInfoMessage(cacheSb.ToString());
                     return;
                 }
                 else if (args.Parameters[1] == "list")
@@ -242,6 +260,7 @@ namespace Skynomi
                 }
                 else if (args.Parameters[1] == "reload")
                 {
+                    #region ReloadCache
                     if (args.Parameters.Count < 3)
                     {
                         args.Player.SendErrorMessage("Usage: /skynomi cache reload <cache> [save]");
@@ -254,12 +273,12 @@ namespace Skynomi
                         return;
                     }
 
-                    var cache = Skynomi.Database.CacheManager.Cache[args.Parameters[2]];
+                    var cache = Skynomi.Database.CacheManager.Cache.GetCache<object>(args.Parameters[2]);
 
                     bool save;
                     if (args.Parameters.Count > 3)
                     {
-                        if (bool.TryParse(args.Parameters[3], out save)) {}
+                        if (bool.TryParse(args.Parameters[3], out save)) { }
                         else
                         {
                             args.Player.SendErrorMessage("Invalid bool for [save].");
@@ -277,10 +296,11 @@ namespace Skynomi
                         args.Player.SendSuccessMessage($"Reloaded {args.Parameters[2]} cache" + (!save ? " without saving" : ""));
                     }
                     return;
+                    #endregion
                 }
                 else if (args.Parameters[1] == "save")
                 {
-                    #region Save
+                    #region SaveCache
                     if (args.Parameters.Count < 3)
                     {
                         args.Player.SendErrorMessage("Usage: /skynomi cache save <cache>");
@@ -293,12 +313,57 @@ namespace Skynomi
                         return;
                     }
 
-                    var cache = Skynomi.Database.CacheManager.Cache[args.Parameters[2]];
+                    var cache = Skynomi.Database.CacheManager.Cache.GetCache<object>(args.Parameters[2]);
                     bool status = cache.Save();
 
                     if (status)
                     {
                         args.Player.SendSuccessMessage($"Saved {args.Parameters[2]} cache");
+                    }
+                    return;
+                    #endregion
+                }
+                else if (args.Parameters[1] == "reloadall")
+                {
+                    #region ReloadAllCache
+                    var allCacheKeys = Skynomi.Database.CacheManager.GetAllCacheKeys();
+                    bool save = args.Parameters.Count > 2 && bool.TryParse(args.Parameters[2], out var saveParam) && saveParam;
+
+                    foreach (var cacheKey in allCacheKeys)
+                    {
+                        var cache = Skynomi.Database.CacheManager.Cache.GetCache<object>(cacheKey);
+                        bool status = cache.Reload(save);
+
+                        if (status)
+                        {
+                            args.Player.SendSuccessMessage($"Reloaded {cacheKey} cache" + (!save ? " without saving" : ""));
+                        }
+                        else
+                        {
+                            args.Player.SendErrorMessage($"Failed to reload {cacheKey} cache");
+                        }
+                    }
+                    return;
+                    #endregion
+                }
+                else if (args.Parameters[1] == "saveall")
+                {
+                    #region SaveAllCache
+                    var allCacheKeys = Skynomi.Database.CacheManager.GetAllCacheKeys();
+
+                    foreach (var cacheKey in allCacheKeys)
+                    {
+                        var cache = Skynomi.Database.CacheManager.Cache.GetCache<object>(cacheKey);
+                        bool status = cache.Save();
+
+                        if (status)
+                        {
+                            args.Player.SendSuccessMessage($"Saved {cacheKey} cache");
+                        }
+                        else
+                        {
+                            args.Player.SendErrorMessage($"Failed to save {cacheKey} cache");
+                        }
                     }
                     return;
                     #endregion

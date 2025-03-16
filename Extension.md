@@ -117,7 +117,7 @@ public class MyExtension : Loader.ISkynomiExtension, Loader.ISkynomiExtensionPos
 
 Use the command:
 
-```
+```n
 /listextension
 ```
 
@@ -127,8 +127,88 @@ This displays all loaded extensions along with their details.
 
 To get more information about a specific extension:
 
-```
+```n
 /listextension <name>
+```
+
+## Using Skynomi Cache Manager
+
+Skynomi provides a built-in caching system that allows extensions to store and retrieve data efficiently.
+
+### Initializing Cache
+
+To load data from the database into the cache:
+
+```csharp
+var balanceCache = CacheManager.Cache.GetCache<long>("balances");
+balanceCache.SqliteQuery = "SELECT Username AS 'Key', Balance AS 'Value' FROM Accounts;";
+balanceCache.MysqlQuery = "SELECT Username AS 'Key', Balance AS 'Value' FROM Accounts;";
+balanceCache.Init();
+```
+
+### Initializing Complex Cache
+
+To load complex data from the database into the cache:
+
+```csharp
+public class TRank
+{
+    public int Rank { get; set; }
+    public int HighestRank { get; set; }
+}
+
+var Rankcache = Skynomi.Database.CacheManager.Cache.GetCache<TRank>("Ranks");
+Rankcache.MysqlQuery = "SELECT Username AS 'Key', JSON_OBJECT('Rank', Rank, 'HighestRank', HighestRank) AS 'Value' FROM Ranks";
+Rankcache.SqliteQuery = Rankcache.MysqlQuery;
+Rankcache.SaveMysqlQuery = "INSERT INTO Ranks (Username, Rank, HighestRank) VALUES (@key, @value_Rank, @value_HighestRank) DUPLICATE KEY UPDATE Rank = @value_Rank, HighestRank = @value_HighestRank";
+Rankcache.SaveSqliteQuery = "INSERT INTO Ranks (Username, Rank, HighestRank) VALUES (@key, @value_Rank, @value_HighestRank) CONFLICT(Username) DO UPDATE SET Rank = @value_Rank, HighestRank = @value_HighestRank";
+Rankcache.Init();
+```
+
+### Modifying Cache
+
+To modify cache entries:
+
+```csharp
+var rankCache = CacheManager.Cache.GetCache<TRank>("Ranks");
+
+// Define an updater function to increase the rank by 1
+Func<TRank, TRank> increaseRank = existingRank =>
+{
+    existingRank.Rank += 1;
+    return existingRank;
+};
+
+rankCache.Modify("player1", increaseRank);
+```
+
+### Saving Data to Cache
+
+To store and persist data:
+
+```csharp
+balanceCache.SaveMysqlQuery = "UPDATE Accounts SET Balance = @value WHERE Username = @key";
+balanceCache.Update("player1", 5000);
+balanceCache.Save();
+```
+
+### Using Complex Objects in Cache
+
+For structured data like auction items:
+
+```csharp
+var shopCache = CacheManager.Cache.GetCache<ShopItem>("auctions");
+shopCache.SaveMysqlQuery = "INSERT INTO Auctions (Username, ItemId, Price, Amount) VALUES (@key, @value_ItemId, @value_Price, @value_Amount)";
+shopCache.Update("player1", new ShopItem { ItemId = 1, Price = 100, Amount = 5 });
+shopCache.Save();
+```
+
+### Automatic Saving
+
+Enable automatic cache saving:
+
+```csharp
+CacheManager.AutoSave(60); // Save cache every 60 seconds
 ```
 
 ## Conclusion

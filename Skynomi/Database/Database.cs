@@ -6,7 +6,7 @@ namespace Skynomi.Database
 {
     public class Database
     {
-        private static object _connection;
+        public static object _connection;
         public static string _databaseType;
         private static Skynomi.Database.Config _config;
         private static bool isFallback = false;
@@ -26,8 +26,8 @@ namespace Skynomi.Database
                     string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Pooling=true;Allow User Variables=true;Max Pool Size=100;";
 
                     _connection = new MySqlConnection(connectionString);
-                    ((MySqlConnection)_connection).Open();
-                    ((MySqlConnection)_connection).Close();
+                    ((MySqlConnection)_connection).OpenAsync();
+                    ((MySqlConnection)_connection).CloseAsync();
                     TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
                 }
                 else
@@ -49,6 +49,7 @@ namespace Skynomi.Database
             }
 
             // Start AutoSave
+            Skynomi.Database.CacheManager.StopAutoSave();
             Skynomi.Database.CacheManager.AutoSave(_config.autoSaveInterval);
             TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} AutoSave enabled.");
         }
@@ -93,11 +94,11 @@ namespace Skynomi.Database
         {
             if (_databaseType == "mysql")
             {
-                ((MySqlConnection)_connection)?.Close();
+                ((MySqlConnection)_connection)?.CloseAsync();
             }
             else
             {
-                ((SqliteConnection)_connection)?.Close();
+                ((SqliteConnection)_connection)?.CloseAsync();
             }
         }
 
@@ -126,9 +127,12 @@ namespace Skynomi.Database
             Close();
             if (_databaseType == "mysql")
             {
-                try {
-                    ((MySqlConnection)_connection).Open();
-                } catch (Exception ex) {
+                try
+                {
+                    ((MySqlConnection)_connection).OpenAsync();
+                }
+                catch (Exception ex)
+                {
                     TShock.Log.ConsoleError($"{Skynomi.Utils.Messages.Name} Failed to connect to MySQL database. Is it running?: {ex.Message}");
                 }
                 return ((MySqlConnection)_connection).CreateCommand();
@@ -142,50 +146,37 @@ namespace Skynomi.Database
 
         public void CreatePlayer(string username)
         {
-            using (var cmd = CreateCommand())
+            if (!CacheManager.Cache.GetCache<long>("Balance").TryGetValue(username, out _))
             {
-                cmd.CommandText = "INSERT OR IGNORE INTO Accounts (Username, Balance) VALUES (@Username, 0)";
-                if (_databaseType == "mysql")
-                {
-                    cmd.CommandText = "INSERT IGNORE INTO Accounts (Username, Balance) VALUES (@Username, 0)";
-                }
-                cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("@Username", username);
-                cmd.ExecuteNonQuery();
-            }
-
-            if (!CacheManager.Cache["SkynomiBalanceCache"].TryGetValue(username, out _))
-            {
-                CacheManager.Cache["SkynomiBalanceCache"].SetValue(username, 0);
+                CacheManager.Cache.GetCache<long>("Balance").Update(username, 0);
             }
         }
 
         public void BalanceInitialize()
         {
-            var BalCache = CacheManager.Cache["SkynomiBalanceCache"];
-            BalCache.MysqlQuery = "SELECT Username, Balance FROM Accounts";
-            BalCache.SqliteQuery = BalCache.MysqlQuery;
-            BalCache.SaveMysqlQuery = "UPDATE Accounts SET Balance = @Param2 WHERE Username = @Param1";
-            BalCache.SaveSqliteQuery = BalCache.SaveMysqlQuery;
-
-            BalCache.Init();
+            var Balance = CacheManager.Cache.GetCache<long>("Balance");
+            Balance.MysqlQuery = "SELECT Username AS 'Key', Balance AS 'Value' FROM Accounts";
+            Balance.SqliteQuery = Balance.MysqlQuery;
+            Balance.SaveMysqlQuery = "INSERT INTO Accounts (Username, Balance) VALUES (@key, @value) ON DUPLICATE KEY UPDATE Balance = @value";
+            Balance.SaveSqliteQuery = @"INSERT INTO Accounts (Username, Balance) VALUES (@key, @value) ON CONFLICT(Username) DO UPDATE SET Balance = @value";
+            Balance.Init();
         }
 
         public long GetBalance(string username)
         {
-            return Convert.ToInt64(CacheManager.Cache["SkynomiBalanceCache"].GetValue(username) ?? 0);
+            return CacheManager.Cache.GetCache<long>("Balance").GetValue(username);
         }
 
         public void AddBalance(string username, long amount)
         {
             long balance = GetBalance(username);
-            CacheManager.Cache["SkynomiBalanceCache"].SetValue(username, balance + amount);
+            CacheManager.Cache.GetCache<long>("Balance").Update(username, balance + amount);
         }
 
         public void RemoveBalance(string username, long amount)
         {
             long balance = GetBalance(username);
-            CacheManager.Cache["SkynomiBalanceCache"].SetValue(username, balance - amount);
+            CacheManager.Cache.GetCache<long>("Balance").Update(username, balance - amount);
         }
 
         public async Task<dynamic> CustomVoidAsync(string query, object? param = null, bool output = false)

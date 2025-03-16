@@ -95,10 +95,9 @@ This will send 500 units of virtual currency to the player named "Keyou".
 **Description**: Skynomi commands.
 
 **Usage**:
-`/skynomi <help/cache>`
+`/skynomi <help>`
 
 - `help`: Display help for Skynomi commands.
-- `cache <list/reload/save>`: List or reload the cache.
 
 ---
 
@@ -208,6 +207,7 @@ Set up the following permissions to control access to the plugin features:
 | `/admin`           | `skynomi.admin`           |
 | `/admin setbal`    | `skynomi.admin.balance`   |
 | `/listextension`   | `skynomi.listextension`   |
+| `/skynomi`         | `skynomi.skynomi`         |
 | `/shop`            | `skynomi.shop`            |
 | `/shop list`       | `skynomi.shop.list`       |
 | `/shop buy`        | `skynomi.shop.buy`        |
@@ -301,8 +301,13 @@ See [Config Document](./Config.md) for this
   - Change data type for balance (int -> long)
   - Break: Using CacheManager to improve performance
   - New Database configuration: `"Auto Save Interval (Seconds)"`
-- Shop System: `v1.1.0` -> `v1.1.1` & Rank System: `v1.1.1` -> `v1.1.2`
+  - Added `skynomi` command to manage the plugin
+  - Improved database query & skynomi performance
+- Shop System: `v1.1.0` -> `v1.1.1`
   - Adjusted to be compatible with the latest version of Skynomi
+- Rank System: `v1.1.1` -> `v1.1.2`
+  - Adjusted to be compatible with the latest version of Skynomi
+  - Improve rank system performance
 
 ## License
 
