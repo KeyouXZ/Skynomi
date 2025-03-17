@@ -12,10 +12,10 @@ namespace Skynomi.Database
         private static Skynomi.Database.Database db = new();
         private static ConcurrentDictionary<string, object> _cache = new ConcurrentDictionary<string, object>();
         private static ConcurrentDictionary<string, object> _lastCache = new ConcurrentDictionary<string, object>();
-
         public static CacheEntryManager Cache { get; } = new CacheEntryManager();
         private static CacheQueryManager QueryCache { get; } = new();
         private static TypeCacheManager TypeCache { get; } = new();
+        private static ToDeleteManager ToRemove { get; } = new();
 
 
         public static IEnumerable<string> GetAllCacheKeys() => _cache.Keys;
@@ -61,6 +61,32 @@ namespace Skynomi.Database
             public Type GetType(string cacheKey) => _type.TryGetValue(cacheKey, out Type? type) ? type : null;
         }
 
+        private class ToDeleteManager
+        {
+            private readonly ConcurrentDictionary<string, List<string>> _trm = new();
+            public void Add(string key, string value, bool deleteMethod = true)
+            {
+                if (!_trm.ContainsKey(key)) _trm[key] = new List<string>();
+
+                List<string> trm = _trm[key];
+
+                if (deleteMethod)
+                {
+                    if (!trm.Contains(value)) trm.Add(value);
+                }
+                else
+                {
+                    trm?.Remove(value);
+                }
+            }
+
+            public List<string> Get(string key)
+            {
+                if (!_trm.ContainsKey(key)) return new List<string>();
+                return _trm.TryGetValue(key, out List<string>? trm) ? trm?.ToList() : null;
+            }
+        }
+
         public interface ICacheEntry
         {
             bool Save();
@@ -69,7 +95,6 @@ namespace Skynomi.Database
         public class CacheEntry<T> : ICacheEntry
         {
             private readonly string _key;
-            private string[] ToRemove = new string[] { };
 
             public CacheEntry(string key, ConcurrentDictionary<string, object> cacheDict)
             {
@@ -89,6 +114,7 @@ namespace Skynomi.Database
             public void Update(string subKey, T value)
             {
                 var cacheDict = GetOrCreateCache();
+
 #pragma warning disable CS8601 // Possible null reference assignment.
                 cacheDict[subKey] = value;
 #pragma warning restore CS8601 // Possible null reference assignment.
@@ -157,8 +183,17 @@ namespace Skynomi.Database
             public bool DeleteValue(string subKey)
             {
                 if (!TryGetValue(subKey, out _)) return false;
-                ToRemove = ToRemove.Append(subKey).ToArray();
-                return GetOrCreateCache().TryRemove(subKey, out _);
+
+                bool status = GetOrCreateCache().TryRemove(subKey, out _);
+
+                ToRemove.Add(_key, subKey);
+
+                if (_lastCache.TryGetValue(_key, out var lastCacheObj) && lastCacheObj is ConcurrentDictionary<string, object> lastCacheDict)
+                {
+                    lastCacheDict.TryRemove(subKey, out _);
+                }
+
+                return status;
             }
 
             public void Clear()
@@ -260,7 +295,8 @@ namespace Skynomi.Database
                     bool toSave = false;
                     foreach (var kvp in cacheDict) { if (!lastCacheDict.TryGetValue(kvp.Key, out var lastValue) || !ReflectionHelper.AreObjectsEqual(lastValue, kvp.Value)) { toSave = true; break; } }
                     ;
-                    if (!ToRemove.Any() && toSave == false || toSave == false) return true;
+                    if (ToRemove.Get(_key).Any()) toSave = true;
+                    if (!toSave) return true;
 
                     Console.WriteLine(Skynomi.Utils.Messages.Name + " Saving " + _key + "...");
 
@@ -277,23 +313,22 @@ namespace Skynomi.Database
                     {
                         try
                         {
-
                             using (var cmd = database?.CreateCommand())
                             {
-                                foreach (string key in ToRemove)
+                                foreach (string key in ToRemove.Get(_key))
                                 {
                                     string aquery = CacheManager.QueryCache.GetQuery(_key, Skynomi.Database.Database._databaseType == "sqlite" ? "SqliteQuery" : "MysqlQuery");
                                     var match = Regex.Match(aquery, @"FROM\s+([\w\d_]+)", RegexOptions.IgnoreCase);
                                     string table = match.Groups[1].Value;
-                                    var bmatch = Regex.Match(aquery, @"AS\s+\'Key\'\s*\)\s*([\w]+)", RegexOptions.IgnoreCase);
-                                    var keyColumn = bmatch.Success ? bmatch.Groups[1].Value : "key";
+                                    var bmatch = Regex.Match(aquery, @"([\w]+)\s+AS\s+'Key'", RegexOptions.IgnoreCase);
+                                    string keyColumn = bmatch.Success ? bmatch.Groups[1].Value : "key";
 
-                                    cmd.CommandText = "DELETE FROM " + table + " WHERE" + keyColumn + " = @key";
+                                    cmd.CommandText = "DELETE FROM " + table + " WHERE " + keyColumn + " = @key";
                                     cmd.Parameters.Clear();
-                                    cmd.AddParameter("@key", new { key });
+                                    cmd.AddParameter("@key", key);
                                     cmd.ExecuteNonQuery();
 
-                                    ToRemove = ToRemove.Except(new string[] { key }).ToArray();
+                                    ToRemove.Add(_key, key, false);
                                 }
 
                                 foreach (var kvp in cacheDict)
