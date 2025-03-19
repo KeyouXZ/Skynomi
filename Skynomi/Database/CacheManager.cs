@@ -17,6 +17,7 @@ namespace Skynomi.Database
         private static TypeCacheManager TypeCache { get; } = new();
         private static ToDeleteManager ToRemove { get; } = new();
 
+        public static EventManager Events = new();
 
         public static IEnumerable<string> GetAllCacheKeys() => _cache.Keys;
 
@@ -87,18 +88,38 @@ namespace Skynomi.Database
             }
         }
 
-        public interface ICacheEntry
+        public class EventManager
         {
-            bool Save();
+            private readonly ConcurrentDictionary<string, EventList> _events = new();
+
+            public EventList this[string key] => _events.GetOrAdd(key, _ => new EventList());
+
+            public class EventList
+            {
+                public event Action<string, object?>? OnUpdate;
+                public event Action<string, object?>? OnAdd;
+                public event Action<string>? OnDelete;
+                public event Action? OnClear;
+                public event Action<string>? OnGet;
+
+                public void InvokeUpdate(string key, object? value) => OnUpdate?.Invoke(key, value);
+                public void InvokeAdd(string key, object? value) => OnAdd?.Invoke(key, value);
+                public void InvokeDelete(string key) => OnDelete?.Invoke(key);
+                public void InvokeClear() => OnClear?.Invoke();
+                public void InvokeGet(string key) => OnGet?.Invoke(key);
+            }
         }
 
-        public class CacheEntry<T> : ICacheEntry
+        public class CacheEntry<T>
         {
+
             private readonly string _key;
+            public EventManager.EventList Events { get; }
 
             public CacheEntry(string key, ConcurrentDictionary<string, object> cacheDict)
             {
                 _key = key;
+                Events = CacheManager.Events[_key];
             }
 
             private ConcurrentDictionary<string, object> GetOrCreateCache()
@@ -118,6 +139,13 @@ namespace Skynomi.Database
 #pragma warning disable CS8601 // Possible null reference assignment.
                 cacheDict[subKey] = value;
 #pragma warning restore CS8601 // Possible null reference assignment.
+
+                bool isNewEntry = !cacheDict.ContainsKey(subKey);
+
+                if (isNewEntry)
+                    Events.InvokeAdd(subKey, value);
+                else
+                    Events.InvokeUpdate(subKey, value);
             }
 
             public void Modify(string key, Func<T, T> updater)
@@ -133,6 +161,7 @@ namespace Skynomi.Database
                 var cacheDict = GetOrCreateCache();
                 if (cacheDict.TryGetValue(subKey, out var obj) && obj is T typedValue)
                 {
+                    Events.InvokeGet(subKey);
                     value = typedValue;
                     return true;
                 }
@@ -193,11 +222,14 @@ namespace Skynomi.Database
                     lastCacheDict.TryRemove(subKey, out _);
                 }
 
+                if (status) Events.InvokeDelete(subKey);
+
                 return status;
             }
 
             public void Clear()
             {
+                Events.InvokeClear();
                 GetOrCreateCache().Clear();
             }
 
@@ -434,7 +466,7 @@ namespace Skynomi.Database
 
         public static bool AutoSave(int intervalInSeconds)
         {
-            _autoSaveCancellationTokenSource?.Cancel();
+            StopAutoSave();
             _autoSaveCancellationTokenSource = new CancellationTokenSource();
             var token = _autoSaveCancellationTokenSource.Token;
 
@@ -462,7 +494,6 @@ namespace Skynomi.Database
         public static void StopAutoSave()
         {
             _autoSaveCancellationTokenSource?.Cancel();
-            _autoSaveCancellationTokenSource = null;
         }
     }
 

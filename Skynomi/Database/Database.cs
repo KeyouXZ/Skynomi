@@ -182,7 +182,6 @@ namespace Skynomi.Database
             CacheManager.Cache.GetCache<long>("Balance").Update(username, balance - amount);
         }
 
-        // public async Task<dynamic> CustomVoidAsync(string query, object? param = null, bool output = false)
         public dynamic CustomVoid(string query, object? param = null, bool output = false)
         {
             using (var cmd = CreateCommand())
