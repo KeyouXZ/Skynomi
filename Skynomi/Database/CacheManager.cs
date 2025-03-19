@@ -193,7 +193,7 @@ namespace Skynomi.Database
                             }
                             catch
                             {
-                                Console.WriteLine($"[ERROR] Failed to deserialize JSON: {json}");
+                                Skynomi.Utils.Log.Error($"Failed to deserialize JSON: {json}");
                                 return default;
                             }
                         }
@@ -242,7 +242,7 @@ namespace Skynomi.Database
             {
                 try
                 {
-                    Console.WriteLine(Skynomi.Utils.Messages.Name + " Initializing " + _key + " cache...");
+                    Skynomi.Utils.Log.General("Initializing " + _key + " cache...");
 
                     TypeCache.SetType(_key, typeof(T));
                     Type t = TypeCache.GetType(_key);
@@ -251,7 +251,7 @@ namespace Skynomi.Database
 
                     if (string.IsNullOrEmpty(query))
                     {
-                        TShock.Log.ConsoleError("No init query set");
+                        Skynomi.Utils.Log.Error("No init query set");
                         return false;
                     }
 
@@ -283,7 +283,7 @@ namespace Skynomi.Database
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError($"Failed to init cache {_key}: {ex.Message}");
+                    Skynomi.Utils.Log.Error($"Failed to init cache {_key}: {ex.Message}");
                     return false;
                 }
             }
@@ -297,7 +297,7 @@ namespace Skynomi.Database
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError($"Failed to reload cache: {ex.Message}");
+                    Skynomi.Utils.Log.Error($"Failed to reload cache: {ex.Message}");
                     return false;
                 }
             }
@@ -310,7 +310,7 @@ namespace Skynomi.Database
 
                     if (string.IsNullOrEmpty(query))
                     {
-                        TShock.Log.ConsoleError($"No save query set for {_key}");
+                        Skynomi.Utils.Log.Error($"No save query set for {_key}");
                         return false;
                     }
 
@@ -330,7 +330,7 @@ namespace Skynomi.Database
                     if (ToRemove.Get(_key).Any()) toSave = true;
                     if (!toSave) return true;
 
-                    Console.WriteLine(Skynomi.Utils.Messages.Name + " Saving " + _key + "...");
+                    Skynomi.Utils.Log.General("Saving " + _key + "...");
 
                     var con = Skynomi.Database.Database._connection;
                     System.Data.Common.DbConnection? database = Skynomi.Database.Database._databaseType == "sqlite"
@@ -421,7 +421,7 @@ namespace Skynomi.Database
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError($"Failed to save cache {_key}: {ex.ToString()}");
+                    Skynomi.Utils.Log.Error($"Failed to save cache {_key}: {ex.ToString()}");
                     return false;
                 }
             }
@@ -457,7 +457,7 @@ namespace Skynomi.Database
             }
             catch (Exception ex)
             {
-                TShock.Log.ConsoleError($"Failed to save all cache: {ex.Message}");
+                Skynomi.Utils.Log.Error($"Failed to save all cache: {ex.Message}");
                 return false;
             }
         }
@@ -477,16 +477,16 @@ namespace Skynomi.Database
                     while (!token.IsCancellationRequested)
                     {
                         await Task.Delay(intervalInSeconds * 1000, token);
-                        Console.WriteLine(Skynomi.Utils.Messages.CacheSaving);
+                        Skynomi.Utils.Log.General(Skynomi.Utils.Messages.CacheSaving);
                         SaveAll();
-                        TShock.Log.ConsoleInfo(Skynomi.Utils.Messages.CacheSaved);
+                        Skynomi.Utils.Log.Info(Skynomi.Utils.Messages.CacheSaved);
                     }
                 }, token);
                 return true;
             }
             catch (Exception ex)
             {
-                TShock.Log.ConsoleError($"Failed to auto save cache: {ex.Message}");
+                Skynomi.Utils.Log.Error($"Failed to auto save cache: {ex.Message}");
                 return false;
             }
         }

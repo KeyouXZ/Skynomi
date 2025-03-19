@@ -9,7 +9,7 @@ namespace Skynomi.RankSystem
     {
         public string Name => "Rank System";
         public string Description => "Rank system extension for Skynomi";
-        public Version Version => new Version(1, 1, 2);
+        public Version Version => new Version(1, 1, 3);
         public string Author => "Keyou";
 
         private static RankSystem.Config rankConfig;
@@ -32,7 +32,7 @@ namespace Skynomi.RankSystem
 
             if (tempConf != rankConfig.useParent)
             {
-                TShock.Log.ConsoleWarn(RankSystem.Messages.ParentSettingChanged);
+                Skynomi.Utils.Log.Warn(RankSystem.Messages.ParentSettingChanged);
                 rankConfig.useParent = tempConf;
             }
         }
@@ -47,7 +47,7 @@ namespace Skynomi.RankSystem
             int counter = 1;
             if (rankConfig == null || rankConfig.Ranks == null)
             {
-                TShock.Log.ConsoleError("Config for Ranks is null.");
+                Skynomi.Utils.Log.Error("Config for Ranks is null.");
                 return;
             }
 

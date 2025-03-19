@@ -128,7 +128,7 @@ namespace Skynomi.ShopSystem
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError(ex.ToString());
+                    Skynomi.Utils.Log.Error(ex.ToString());
                 }
             }
             #endregion

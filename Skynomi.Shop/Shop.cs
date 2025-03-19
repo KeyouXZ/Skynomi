@@ -9,7 +9,7 @@ namespace Skynomi.ShopSystem
     {
         public string Name => "Shop System";
         public string Description => "Shop system extension for Skynomi";
-        public Version Version => new Version(1, 1, 1);
+        public Version Version => new Version(1, 1, 2);
         public string Author => "Keyou";
 
         private static Skynomi.Config config;
@@ -37,12 +37,12 @@ namespace Skynomi.ShopSystem
 
             if (shopConfig.ProtectedByRegion && string.IsNullOrEmpty(shopConfig.ShopRegion))
             {
-                TShock.Log.ConsoleWarn(ShopSystem.Messages.EmptyNEnableProtectedRegion);
+                Skynomi.Utils.Log.Warn(ShopSystem.Messages.EmptyNEnableProtectedRegion);
             }
 
             if (shopConfig.AutoBroadcastShop && _List() != "No items available")
             {
-                TShock.Log.Warn(ShopSystem.Messages.AutoShopDisabled);
+                Skynomi.Utils.Log.Warn(ShopSystem.Messages.AutoShopDisabled);
                 broadcastTimer = new System.Timers.Timer(shopConfig.BroadcastIntervalInSeconds * 1000);
                 broadcastTimer.Elapsed += OnBroadcastTimerElapsed;
                 broadcastTimer.AutoReset = true;
@@ -55,7 +55,7 @@ namespace Skynomi.ShopSystem
             // broadcast
             if (shopConfig.AutoBroadcastShop && _List() != "No items available")
             {
-                TShock.Log.Warn(ShopSystem.Messages.AutoShopDisabled);
+                Skynomi.Utils.Log.Warn(ShopSystem.Messages.AutoShopDisabled);
                 broadcastTimer = new System.Timers.Timer(shopConfig.BroadcastIntervalInSeconds * 1000);
                 broadcastTimer.Elapsed += OnBroadcastTimerElapsed;
                 broadcastTimer.AutoReset = true;
@@ -64,7 +64,7 @@ namespace Skynomi.ShopSystem
 
             if (shopConfig.ProtectedByRegion && string.IsNullOrEmpty(shopConfig.ShopRegion))
             {
-                TShock.Log.ConsoleWarn(ShopSystem.Messages.EmptyNEnableProtectedRegion);
+                Skynomi.Utils.Log.Warn(ShopSystem.Messages.EmptyNEnableProtectedRegion);
             }
         }
 

@@ -87,6 +87,16 @@ This document details the configuration settings for the currency and reward sys
 | Description | Enables/disables rewards from friendly NPCs |
 | Default | false |
 
+## Others
+
+### Log Path
+
+| Field | Value |
+|-------|--------|
+| Type | String |
+| Description | Location of log files. Leave blank to disable logging |
+| Default | "tshock/Skynomi/logs" |
+
 ## Example Configuration
 
 ```json
@@ -99,7 +109,8 @@ This document details the configuration settings for the currency and reward sys
   "NPC Reward": "{hp}/4*1.2",
   "Drop on Death": 0.5,
   "Reward From Statue": false,
-  "Reward From Friendly NPC": false
+  "Reward From Friendly NPC": false,
+  "Log Path": "tshock/Skynomi/logs"
 }
 ```
 

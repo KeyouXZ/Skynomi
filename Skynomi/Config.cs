@@ -22,6 +22,8 @@ namespace Skynomi {
         public bool RewardFromStatue { get; set; } = false;
         [JsonProperty("Reward From Friendly NPC")]
         public bool RewardFromFriendlyNPC { get; set; } = false;
+        [JsonProperty("Log Path")]
+        public string LogPath { get; set; } = "tshock/Skynomi/logs";
 
         public static Config Read() {
             string directoryPath = Path.Combine(TShock.SavePath, "Skynomi");
@@ -40,7 +42,7 @@ namespace Skynomi {
 			}
 			
 			catch (Exception ex) {
-				TShock.Log.ConsoleError(ex.ToString());
+				Skynomi.Utils.Log.Error(ex.ToString());
 				return new Config();
 			}
         }

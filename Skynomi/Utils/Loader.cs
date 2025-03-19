@@ -63,18 +63,18 @@ namespace Skynomi.Utils
                         {
                             instance.Initialize();
                             _loadedExtensions.Add(instance);
-                            Console.WriteLine($"{Skynomi.Utils.Messages.Name} Info extension: {instance.Name} v{instance.Version} by {instance.Author}");
+                            Skynomi.Utils.Log.General($"Info extension: {instance.Name} v{instance.Version} by {instance.Author}");
                         }
                         else
                         {
-                            TShock.Log.ConsoleError($"{Skynomi.Utils.Messages.Name} Failed to create instance of {type.FullName}. Ensure it implements ISkynomiExtension correctly.");
+                            Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to create instance of {type.FullName}. Ensure it implements ISkynomiExtension correctly.");
                         }
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError($"{Skynomi.Utils.Messages.Name} Failed to load {Path.GetFileName(file)}: {ex.Message}");
+                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to load {Path.GetFileName(file)}: {ex.Message}");
                 }
             }
         }
@@ -134,7 +134,7 @@ namespace Skynomi.Utils
         /// </summary>
         public static void Reload(ReloadEventArgs args)
         {
-            string text = Skynomi.Utils.Messages.Name + " Reloaded extensions:";
+            string text = "Reloaded extensions:";
             bool isAvailable = false;
             foreach (var extension in _loadedExtensions)
             {
@@ -149,20 +149,21 @@ namespace Skynomi.Utils
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError($"{Skynomi.Utils.Messages.Name} Failed to reload {extension.Name}: {ex.Message}");
+                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to reload {extension.Name}: {ex.Message}");
                 }
             }
 
             if (isAvailable == true)
             {
                 args.Player.SendSuccessMessage(text);
+                Skynomi.Utils.Log.LogFile(text);
                 return;
             }
         }
 
         public static void PostInitialize(EventArgs args)
         {
-            string text = Skynomi.Utils.Messages.Name + " PostInitialized extensions:";
+            string text = "PostInitialized extensions:";
             bool isAvailable = false;
             foreach (var extension in _loadedExtensions)
             {
@@ -177,15 +178,13 @@ namespace Skynomi.Utils
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError($"{Skynomi.Utils.Messages.Name} Failed to PostInitialize {extension.Name}: {ex.Message}");
+                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to PostInitialize {extension.Name}: {ex.Message}");
                 }
             }
 
             if (isAvailable == true)
             {
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.WriteLine(text);
-                Console.ResetColor();
+                Skynomi.Utils.Log.Info(text);
             }
         }
 
@@ -194,7 +193,7 @@ namespace Skynomi.Utils
         /// </summary>
         public static void Dispose()
         {
-            string text = Skynomi.Utils.Messages.Name + " Disposed extensions:";
+            string text = "Disposed extensions:";
             bool isAvailable = false;
             foreach (var extension in _loadedExtensions)
             {
@@ -209,13 +208,13 @@ namespace Skynomi.Utils
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError($"{Skynomi.Utils.Messages.Name} Failed to dispose {extension.Name}: {ex.Message}");
+                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to dispose {extension.Name}: {ex.Message}");
                 }
             }
 
             if (isAvailable == true)
             {
-                Console.WriteLine(text);
+                Skynomi.Utils.Log.Info(text);
             }
             _loadedExtensions.Clear();
         }

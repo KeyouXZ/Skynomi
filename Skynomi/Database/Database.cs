@@ -21,7 +21,7 @@ namespace Skynomi.Database
             {
                 try
                 {
-                    TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connecting to MySQL database...");
+                    Skynomi.Utils.Log.Info($"{Skynomi.Utils.Messages.Name} Connecting to MySQL database...");
                     string MysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
                     string MysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
                     string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Connection Timeout=30;Default Command Timeout=60;Allow User Variables=true;";
@@ -29,12 +29,12 @@ namespace Skynomi.Database
                     _connection = new MySqlConnection(connectionString);
                     ((MySqlConnection)_connection).Open();
                     ((MySqlConnection)_connection).Close();
-                    TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
+                    Skynomi.Utils.Log.Info($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
                     CreateTables();
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError($"{Skynomi.Utils.Messages.Name} Failed to connect to MySQL database: {ex}");
+                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to connect to MySQL database: {ex}");
                     if (_databaseType == "mysql")
                     {
                         isFallback = true;
@@ -52,7 +52,7 @@ namespace Skynomi.Database
             // Start AutoSave
             Skynomi.Database.CacheManager.StopAutoSave();
             Skynomi.Database.CacheManager.AutoSave(_config.autoSaveInterval);
-            TShock.Log.ConsoleInfo($"{Skynomi.Utils.Messages.Name} AutoSave enabled.");
+            Skynomi.Utils.Log.Info("AutoSave enabled.");
         }
 
         private void InitializeSqlite()
@@ -65,7 +65,7 @@ namespace Skynomi.Database
             }
             catch (Exception ex)
             {
-                TShock.Log.ConsoleError($"{Skynomi.Utils.Messages.Name} Failed to connect to SQLite database: {ex}");
+                Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to connect to SQLite database: {ex}");
             }
         }
 
@@ -107,19 +107,19 @@ namespace Skynomi.Database
         {
             if (_config.databaseType != "sqlite" && _config.databaseType != "mysql")
             {
-                TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.UnsupportedDatabaseType);
+                Skynomi.Utils.Log.Warn(Skynomi.Utils.Messages.UnsupportedDatabaseType);
                 isFallback = true;
             }
 
             if (isFallback)
             {
-                TShock.Log.ConsoleInfo(Skynomi.Utils.Messages.FallBack);
+                Skynomi.Utils.Log.Info(Skynomi.Utils.Messages.FallBack);
                 _databaseType = "sqlite";
             }
 
             if (TShock.Config.Settings.StorageType.ToLower() != _databaseType.ToLower())
             {
-                TShock.Log.ConsoleWarn(Skynomi.Utils.Messages.DifferenctDatabaseType);
+                Skynomi.Utils.Log.Warn(Skynomi.Utils.Messages.DifferenctDatabaseType);
             }
         }
 
@@ -134,8 +134,8 @@ namespace Skynomi.Database
                 }
                 catch (Exception ex)
                 {
-                    TShock.Log.ConsoleError($"{Skynomi.Utils.Messages.Name} Failed to connect to database. Is it running?");
-                    TShock.Log.ConsoleError(ex.ToString());
+                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to connect to database. Is it running?");
+                    Skynomi.Utils.Log.Error(ex.ToString());
                     throw new InvalidOperationException($"{Skynomi.Utils.Messages.Name} Fatal error occurred. Unable to proceed with the database operation.");
                 }
                 return ((MySqlConnection)_connection).CreateCommand();

@@ -16,10 +16,11 @@ namespace Skynomi
         public override string Name => "Skynomi";
         public override Version Version => new Version(3, 1, 0);
 
-        private Skynomi.Config config;
+        public static Skynomi.Config config;
         private Skynomi.Database.Database database;
 
         private Dictionary<int, NpcInteraction> npcInteractions = new Dictionary<int, NpcInteraction>();
+        public static string timeBoot;
 
         public static SkynomiPlugin Instance { get; private set; }
         
@@ -30,6 +31,7 @@ namespace Skynomi
 
         public override void Initialize()
         {
+            timeBoot = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
             config = Config.Read();
             database = new Skynomi.Database.Database();
             database.InitializeDatabase();
@@ -61,10 +63,10 @@ namespace Skynomi
                 GeneralHooks.ReloadEvent -= Reload;
                 GetDataHandlers.KillMe -= PlayerDead;
 
-                Console.WriteLine(Skynomi.Utils.Messages.CacheSaving);
+                Skynomi.Utils.Log.General(Skynomi.Utils.Messages.CacheSaving);
                 Skynomi.Database.CacheManager.StopAutoSave();
                 Skynomi.Database.CacheManager.SaveAll();
-                TShock.Log.ConsoleInfo(Skynomi.Utils.Messages.CacheSaved);
+                Skynomi.Utils.Log.Info(Skynomi.Utils.Messages.CacheSaved);
                 Skynomi.Database.Database.Close();
 
             }
@@ -154,7 +156,7 @@ namespace Skynomi
                 }
                 catch
                 {
-                    TShock.Log.ConsoleError($"Invalid reward formula: {rewardFormula}");
+                    Skynomi.Utils.Log.Error($"Invalid reward formula: {rewardFormula}");
                     return;
                 }
 
@@ -196,7 +198,7 @@ namespace Skynomi
             }
             catch (Exception ex)
             {
-                TShock.Log.ConsoleError(ex.ToString());
+                Skynomi.Utils.Log.Error(ex.ToString());
             }
         }
 

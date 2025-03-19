@@ -147,7 +147,7 @@ namespace Skynomi.RankSystem
             }
             catch (Exception ex)
             {
-                TShock.Log.ConsoleError(ex.ToString());
+                Skynomi.Utils.Log.Error(ex.ToString());
             }
 
         }
@@ -228,7 +228,7 @@ namespace Skynomi.RankSystem
             }
             catch (Exception ex)
             {
-                TShock.Log.ConsoleError(ex.ToString());
+                Skynomi.Utils.Log.Error(ex.ToString());
             }
         }
 

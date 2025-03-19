@@ -35,7 +35,7 @@ namespace Skynomi.RankSystem
 
             catch (Exception ex)
             {
-                TShock.Log.ConsoleError(ex.ToString());
+                Skynomi.Utils.Log.Error(ex.ToString());
                 return new Config();
             }
         }

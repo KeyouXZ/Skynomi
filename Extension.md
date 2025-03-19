@@ -131,6 +131,8 @@ To get more information about a specific extension:
 /listextension <name>
 ```
 
+---
+
 ## Using Skynomi Cache Manager
 
 Skynomi provides a built-in caching system that allows extensions to store and retrieve data efficiently.
@@ -209,6 +211,102 @@ Enable automatic cache saving:
 
 ```csharp
 CacheManager.AutoSave(60); // Save cache every 60 seconds
+```
+
+---
+
+## Skynomi Logging Utility Documentation
+
+### Overview
+
+The `Skynomi.Utils.Log` class provides a robust logging system for Skynomi plugins, ensuring that all important events, errors, and general information are recorded effectively.
+
+### Features
+
+- Console logging with different log levels (Info, Error, Success, Warn, General).
+- File-based logging with timestamped entries.
+- Automatic log directory creation.
+- Stack trace tracking to identify the caller method.
+
+### Methods
+
+#### 1. `LogFile(string message)`
+
+Logs a message to both the console and log files.
+
+**Parameters:**
+
+- `message` (string): The message to be logged.
+
+#### 2. `Info(string message)`
+
+Logs an informational message.
+
+**Example:**
+
+```csharp
+Skynomi.Utils.Log.Info("Server started successfully.");
+```
+
+#### 3. `Error(string message)`
+
+Logs an error message.
+
+**Example:**
+
+```csharp
+Skynomi.Utils.Log.Error("Failed to load configuration file.");
+```
+
+#### 4. `Success(string message)`
+
+Logs a success message.
+
+**Example:**
+
+```csharp
+Skynomi.Utils.Log.Success("Plugin loaded without errors.");
+```
+
+#### 5. `Warn(string message)`
+
+Logs a warning message.
+
+**Example:**
+
+```csharp
+Skynomi.Utils.Log.Warn("Configuration file is missing optional parameters.");
+```
+
+#### 6. `General(string message)`
+
+Logs a general message without a specific severity.
+
+**Example:**
+
+```csharp
+Skynomi.Utils.Log.General("Plugin initialized.");
+```
+
+### Log Formatting
+
+Each log entry follows this format:
+
+```log
+yyyy-MM-dd-HH-mm [LEVEL] (ClassName) => Message
+```
+
+Where:
+
+- `LEVEL` is one of `INFO`, `ERROR`, `SUCCESS`, `WARN`, `UNKNOWN`.
+- `ClassName` represents the class where the log was triggered.
+- `Message` is the log content.
+
+### Example Log Output
+
+```log
+2025-03-19-14-30 [I] (SkynomiPlugin) => Server started successfully.
+2025-03-19-14-32 [E] (ConfigManager) => Failed to load configuration file.
 ```
 
 ## Conclusion

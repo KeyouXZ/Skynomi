@@ -311,6 +311,13 @@ See [Config Document](./Config.md) for this
   - Adjusted to be compatible with the latest version of Skynomi
   - Improve rank system performance & fix rank system configuration bug
 
+**Version 3.1.0**
+
+- Skynomi: `v3.0.0` -> `v3.1.0`
+  - New feature: EventManager for CacheManager
+  - New feature: Logger for Skynomi (General, Info, Warning, Error, Success)
+    - New Skynomi configuration: `"Log Path"`
+
 ## License
 
 This plugin is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html).
