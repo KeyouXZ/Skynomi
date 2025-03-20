@@ -40,7 +40,7 @@ namespace Skynomi.Utils
         public static void Initialize()
         {
             Dispose();
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.ListExtension, ListExtensionsCommand, "listextension", "le")
+            TShockAPI.Commands.ChatCommands.Add(new Command(Permissions.ListExtension, ListExtensionsCommand, "listextension", "le")
             {
                 AllowServer = true,
                 HelpText = "List all loaded extensions."
@@ -63,18 +63,18 @@ namespace Skynomi.Utils
                         {
                             instance.Initialize();
                             _loadedExtensions.Add(instance);
-                            Skynomi.Utils.Log.General($"Info extension: {instance.Name} v{instance.Version} by {instance.Author}");
+                            Log.General($"Info extension: {instance.Name} v{instance.Version} by {instance.Author}");
                         }
                         else
                         {
-                            Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to create instance of {type.FullName}. Ensure it implements ISkynomiExtension correctly.");
+                            Log.Error($"{Messages.Name} Failed to create instance of {type.FullName}. Ensure it implements ISkynomiExtension correctly.");
                         }
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to load {Path.GetFileName(file)}: {ex.Message}");
+                    Log.Error($"{Messages.Name} Failed to load {Path.GetFileName(file)}: {ex.Message}");
                 }
             }
         }
@@ -112,6 +112,7 @@ namespace Skynomi.Utils
                 }
 
                 bool isReloadable = extension is ISkynomiExtensionReloadable;
+                // ReSharper disable once SuspiciousTypeConversion.Global
                 bool isDisposable = extension is ISkynomiExtensionDisposable;
                 bool isPostInit = extension is ISkynomiExtensionPostInit;
 
@@ -149,15 +150,14 @@ namespace Skynomi.Utils
                 }
                 catch (Exception ex)
                 {
-                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to reload {extension.Name}: {ex.Message}");
+                    Log.Error($"{Messages.Name} Failed to reload {extension.Name}: {ex.Message}");
                 }
             }
 
-            if (isAvailable == true)
+            if (isAvailable)
             {
                 args.Player.SendSuccessMessage(text);
-                Skynomi.Utils.Log.LogFile(text);
-                return;
+                Log.LogFile(text);
             }
         }
 
@@ -178,13 +178,13 @@ namespace Skynomi.Utils
                 }
                 catch (Exception ex)
                 {
-                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to PostInitialize {extension.Name}: {ex.Message}");
+                    Log.Error($"{Messages.Name} Failed to PostInitialize {extension.Name}: {ex.Message}");
                 }
             }
 
-            if (isAvailable == true)
+            if (isAvailable)
             {
-                Skynomi.Utils.Log.Info(text);
+                Log.Info(text);
             }
         }
 
@@ -199,6 +199,7 @@ namespace Skynomi.Utils
             {
                 try
                 {
+                    // ReSharper disable once SuspiciousTypeConversion.Global
                     if (extension is ISkynomiExtensionDisposable disposable)
                     {
                         disposable.Dispose();
@@ -208,13 +209,13 @@ namespace Skynomi.Utils
                 }
                 catch (Exception ex)
                 {
-                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to dispose {extension.Name}: {ex.Message}");
+                    Log.Error($"{Messages.Name} Failed to dispose {extension.Name}: {ex.Message}");
                 }
             }
 
-            if (isAvailable == true)
+            if (isAvailable)
             {
-                Skynomi.Utils.Log.Info(text);
+                Log.Info(text);
             }
             _loadedExtensions.Clear();
         }

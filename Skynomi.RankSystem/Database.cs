@@ -3,7 +3,7 @@ namespace Skynomi.RankSystem
     public class Database
     {
         private static Skynomi.Database.Database db;
-        private static string _databaseType = Skynomi.Database.Database._databaseType;
+        private static readonly string _databaseType = Skynomi.Database.Database._databaseType;
         public static void Initialize()
         {
             db = new Skynomi.Database.Database();

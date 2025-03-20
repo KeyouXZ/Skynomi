@@ -142,7 +142,7 @@ namespace Skynomi
                     return;
 
                 if (args.npc.SpawnedFromStatue && !config.RewardFromStatue) return;
-                if (args.npc.friendly && !config.RewardFromFriendlyNPC) return;
+                if (args.npc.friendly && !config.RewardFromFriendlyNpc) return;
 
                 string rewardFormula = args.npc.boss ? config.BossReward : config.NpcReward;
 

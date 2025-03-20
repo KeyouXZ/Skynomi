@@ -1,6 +1,6 @@
 namespace Skynomi.RankSystem
 {
-    public class Permissions
+    public abstract class Permissions
     {
         public static readonly string Rank = "skynomi.rank";
         public static readonly string RankUp = "skynomi.rank.up";
@@ -9,7 +9,7 @@ namespace Skynomi.RankSystem
         public static readonly string RankInfo = "skynomi.rank.info";
     }
 
-    public class Messages
+    public abstract class Messages
     {
         public static readonly string ParentSettingChanged = $"{Skynomi.Utils.Messages.Name} Use Parent for Rank setting changed, please restart the server to apply changes.";
     }

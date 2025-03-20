@@ -9,35 +9,35 @@ namespace Skynomi.Database
     {
         public static object _connection;
         public static string _databaseType;
-        private static Skynomi.Database.Config _config;
-        private static bool isFallback = false;
+        private static Config _config;
+        private static bool _isFallback;
 
         public void InitializeDatabase()
         {
-            _config = Skynomi.Database.Config.Read();
+            _config = Config.Read();
             _databaseType = _config.databaseType.ToLower();
 
             if (_databaseType == "mysql")
             {
                 try
                 {
-                    Skynomi.Utils.Log.Info($"{Skynomi.Utils.Messages.Name} Connecting to MySQL database...");
-                    string MysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
-                    string MysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
-                    string connectionString = $"Server={MysqlHost};Port={MysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Connection Timeout=30;Default Command Timeout=60;Allow User Variables=true;";
+                    Utils.Log.Info($"{Utils.Messages.Name} Connecting to MySQL database...");
+                    string mysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
+                    string mysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
+                    string connectionString = $"Server={mysqlHost};Port={mysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Connection Timeout=30;Default Command Timeout=60;Allow User Variables=true;";
 
                     _connection = new MySqlConnection(connectionString);
                     ((MySqlConnection)_connection).Open();
                     ((MySqlConnection)_connection).Close();
-                    Skynomi.Utils.Log.Info($"{Skynomi.Utils.Messages.Name} Connected to MySQL database.");
+                    Utils.Log.Info($"{Utils.Messages.Name} Connected to MySQL database.");
                     CreateTables();
                 }
                 catch (Exception ex)
                 {
-                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to connect to MySQL database: {ex}");
+                    Utils.Log.Error($"{Utils.Messages.Name} Failed to connect to MySQL database: {ex}");
                     if (_databaseType == "mysql")
                     {
-                        isFallback = true;
+                        _isFallback = true;
                         _databaseType = "sqlite";
                         InitializeSqlite();
                     }
@@ -50,9 +50,9 @@ namespace Skynomi.Database
             }
 
             // Start AutoSave
-            Skynomi.Database.CacheManager.StopAutoSave();
-            Skynomi.Database.CacheManager.AutoSave(_config.autoSaveInterval);
-            Skynomi.Utils.Log.Info("AutoSave enabled.");
+            CacheManager.StopAutoSave();
+            CacheManager.AutoSave(_config.autoSaveInterval);
+            Utils.Log.Info("AutoSave enabled.");
         }
 
         private void InitializeSqlite()
@@ -65,15 +65,14 @@ namespace Skynomi.Database
             }
             catch (Exception ex)
             {
-                Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to connect to SQLite database: {ex}");
+                Utils.Log.Error($"{Utils.Messages.Name} Failed to connect to SQLite database: {ex}");
             }
         }
 
         private void CreateTables()
         {
-            using (var cmd = CreateCommand())
-            {
-                cmd.CommandText = _databaseType == "mysql" ?
+            using var cmd = CreateCommand();
+            cmd.CommandText = _databaseType == "mysql" ?
                 @"
                 CREATE TABLE IF NOT EXISTS Accounts (
                     Id INT AUTO_INCREMENT PRIMARY KEY,
@@ -87,19 +86,18 @@ namespace Skynomi.Database
                     Balance BIGINT NOT NULL DEFAULT 0
                 )";
 
-                cmd.ExecuteNonQuery();
-            }
+            cmd.ExecuteNonQuery();
         }
 
         public static void Close()
         {
             if (_databaseType == "mysql")
             {
-                ((MySqlConnection)_connection)?.Close();
+                ((MySqlConnection)_connection).Close();
             }
             else
             {
-                ((SqliteConnection)_connection)?.Close();
+                ((SqliteConnection)_connection).Close();
             }
         }
 
@@ -107,19 +105,19 @@ namespace Skynomi.Database
         {
             if (_config.databaseType != "sqlite" && _config.databaseType != "mysql")
             {
-                Skynomi.Utils.Log.Warn(Skynomi.Utils.Messages.UnsupportedDatabaseType);
-                isFallback = true;
+                Utils.Log.Warn(Utils.Messages.UnsupportedDatabaseType);
+                _isFallback = true;
             }
 
-            if (isFallback)
+            if (_isFallback)
             {
-                Skynomi.Utils.Log.Info(Skynomi.Utils.Messages.FallBack);
+                Utils.Log.Info(Utils.Messages.FallBack);
                 _databaseType = "sqlite";
             }
 
             if (TShock.Config.Settings.StorageType.ToLower() != _databaseType.ToLower())
             {
-                Skynomi.Utils.Log.Warn(Skynomi.Utils.Messages.DifferenctDatabaseType);
+                Utils.Log.Warn(Utils.Messages.DifferenctDatabaseType);
             }
         }
 
@@ -134,9 +132,9 @@ namespace Skynomi.Database
                 }
                 catch (Exception ex)
                 {
-                    Skynomi.Utils.Log.Error($"{Skynomi.Utils.Messages.Name} Failed to connect to database. Is it running?");
-                    Skynomi.Utils.Log.Error(ex.ToString());
-                    throw new InvalidOperationException($"{Skynomi.Utils.Messages.Name} Fatal error occurred. Unable to proceed with the database operation.");
+                    Utils.Log.Error($"{Utils.Messages.Name} Failed to connect to database. Is it running?");
+                    Utils.Log.Error(ex.ToString());
+                    throw new InvalidOperationException($"{Utils.Messages.Name} Fatal error occurred. Unable to proceed with the database operation.");
                 }
                 return ((MySqlConnection)_connection).CreateCommand();
             }
@@ -157,12 +155,12 @@ namespace Skynomi.Database
 
         public void BalanceInitialize()
         {
-            var Balance = CacheManager.Cache.GetCache<long>("Balance");
-            Balance.MysqlQuery = "SELECT Username AS 'Key', Balance AS 'Value' FROM Accounts";
-            Balance.SqliteQuery = Balance.MysqlQuery;
-            Balance.SaveMysqlQuery = "INSERT INTO Accounts (Username, Balance) VALUES (@key, @value) ON DUPLICATE KEY UPDATE Balance = @value";
-            Balance.SaveSqliteQuery = @"INSERT INTO Accounts (Username, Balance) VALUES (@key, @value) ON CONFLICT(Username) DO UPDATE SET Balance = @value";
-            Balance.Init();
+            var balance = CacheManager.Cache.GetCache<long>("Balance");
+            balance.MysqlQuery = "SELECT Username AS 'Key', Balance AS 'Value' FROM Accounts";
+            balance.SqliteQuery = balance.MysqlQuery;
+            balance.SaveMysqlQuery = "INSERT INTO Accounts (Username, Balance) VALUES (@key, @value) ON DUPLICATE KEY UPDATE Balance = @value";
+            balance.SaveSqliteQuery = @"INSERT INTO Accounts (Username, Balance) VALUES (@key, @value) ON CONFLICT(Username) DO UPDATE SET Balance = @value";
+            balance.Init();
         }
 
         public long GetBalance(string username)
@@ -184,46 +182,42 @@ namespace Skynomi.Database
 
         public dynamic CustomVoid(string query, object? param = null, bool output = false)
         {
-            using (var cmd = CreateCommand())
+            using var cmd = CreateCommand();
+            cmd.CommandText = query;
+            if (param != null)
             {
-                cmd.CommandText = query;
-                if (param != null)
+                var properties = param.GetType().GetProperties();
+                foreach (var property in properties)
                 {
-                    var properties = param.GetType().GetProperties();
-                    foreach (var property in properties)
-                    {
-                        cmd.AddParameter($"@{property.Name}", property.GetValue(param));
-                    }
+                    cmd.AddParameter($"@{property.Name}", property.GetValue(param));
                 }
+            }
 
-                if (output)
+            if (output)
+            {
+                var resultList = new List<Dictionary<string, object>>();
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
                 {
-                    var resultList = new List<Dictionary<string, object>>();
+                    var row = new Dictionary<string, object>();
 
-                    using (var reader = cmd.ExecuteReader())
+                    for (int i = 0; i < reader.FieldCount; i++)
                     {
-                        while (reader.Read())
-                        {
-                            var row = new Dictionary<string, object>();
-
-                            for (int i = 0; i < reader.FieldCount; i++)
-                            {
 #pragma warning disable CS8601 // Possible null reference assignment.
-                                row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                        row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
 #pragma warning restore CS8601 // Possible null reference assignment.
-                            }
-
-                            resultList.Add(row);
-                        }
                     }
 
-                    return resultList;
+                    resultList.Add(row);
                 }
-                else
-                {
-                    cmd.ExecuteNonQuery();
-                    return new List<Dictionary<string, object>>();
-                }
+
+                return resultList;
+            }
+            else
+            {
+                cmd.ExecuteNonQuery();
+                return new List<Dictionary<string, object>>();
             }
         }
     }

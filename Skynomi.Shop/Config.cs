@@ -6,13 +6,13 @@ namespace Skynomi.ShopSystem
     public class Config
     {
         [JsonProperty("Auto Broadcast Shop")]
-        public bool AutoBroadcastShop { get; set; } = false;
+        public bool AutoBroadcastShop { get; set; }
 
         [JsonProperty("Broadcast Interval in Seconds")]
         public int BroadcastIntervalInSeconds { get; set; } = 60;
 
         [JsonProperty("Protected by Region")]
-        public bool ProtectedByRegion { get; set; } = false;
+        public bool ProtectedByRegion { get; set; }
 
         [JsonProperty("Shop Region")]
         public string ShopRegion { get; set; } = "ShopRegion";
@@ -28,7 +28,7 @@ namespace Skynomi.ShopSystem
 
             try
             {
-                Config config = new Config().defaultConfig();
+                Config config = defaultConfig();
 
                 if (!File.Exists(configPath))
                 {
@@ -41,25 +41,28 @@ namespace Skynomi.ShopSystem
 
             catch (Exception ex)
             {
-                Skynomi.Utils.Log.Error(ex.ToString());
-                return new Config();
+                Utils.Log.Error(ex.ToString());
+                return new();
             }
         }
 
-        public Config defaultConfig()
+        private static Config defaultConfig()
         {
-            var defaultConfig = new Config();
-
-            defaultConfig.ShopItems["4444"] = new ShopItem
+            var defaultConfig = new Config
             {
-                buyPrice = 1000,
-                sellPrice = 900,
-            };
-
-            defaultConfig.ShopItems["1"] = new ShopItem
-            {
-                buyPrice = 2,
-                sellPrice = 1,
+                ShopItems =
+                {
+                    ["4444"] = new ShopItem
+                    {
+                        buyPrice = 1000,
+                        sellPrice = 900,
+                    },
+                    ["1"] = new ShopItem
+                    {
+                        buyPrice = 2,
+                        sellPrice = 1,
+                    }
+                }
             };
 
             return defaultConfig;

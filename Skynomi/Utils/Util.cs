@@ -3,24 +3,24 @@ using Terraria;
 
 namespace Skynomi.Utils
 {
-    public class Util
+    public abstract class Util
     {
-        private static Skynomi.Config config;
+        private static Config _config;
         public static void Initialize()
         {
-            config = Skynomi.Config.Read();
-            On.OTAPI.Hooks.MessageBuffer.InvokeGetData += Skynomi.Utils.Util.OnGetData;
+            _config = Config.Read();
+            On.OTAPI.Hooks.MessageBuffer.InvokeGetData += OnGetData;
         }
 
         public static void Reload()
         {
-            config = Skynomi.Config.Read();
+            _config = Config.Read();
         }
         public static bool CheckIfLogin(CommandArgs args)
         {
             if (!args.Player.IsLoggedIn)
             {
-                args.Player.SendErrorMessage(Skynomi.Utils.Messages.NotLogged);
+                args.Player.SendErrorMessage(Messages.NotLogged);
                 return false;
             }
             return true;
@@ -30,7 +30,7 @@ namespace Skynomi.Utils
         {
             if (!args.Player.HasPermission(perm))
             {
-                args.Player.SendErrorMessage(Skynomi.Utils.Messages.PermissionError, TShockAPI.Commands.Specifier);
+                args.Player.SendErrorMessage(Messages.PermissionError, TShockAPI.Commands.Specifier);
                 return false;
             }
 
@@ -39,14 +39,9 @@ namespace Skynomi.Utils
 
         #region Currency
         public static string CurrencyFormat(long amount)
-        {   
-            string formattedAmount;
-            if (config.AbbsreviasiNumeric) {
-                formattedAmount = FormatNumber(amount);
-            } else {
-                formattedAmount = amount.ToString();
-            }
-            return config.CurrencyFormat.Replace("{currency}", config.Currency).Replace("{amount}", formattedAmount.ToString());
+        {
+            string formattedAmount = _config.AbbsreviasiNumeric ? FormatNumber(amount) : amount.ToString();
+            return _config.CurrencyFormat.Replace("{currency}", _config.Currency).Replace("{amount}", formattedAmount);
         }
         
        private static string FormatNumber(long num)
@@ -74,7 +69,7 @@ namespace Skynomi.Utils
             PC = 233
         }
 
-        public static PlatformType[] Platforms { get; set; } = new PlatformType[256];
+        private static PlatformType[] Platforms { get; set; } = new PlatformType[256];
 
         public static string GetPlatform(TSPlayer player)
         {
@@ -94,12 +89,14 @@ namespace Skynomi.Utils
                 {
                     instance.ResetReader();
                     instance.reader.BaseStream.Position = start + 1;
-                    var PlayerSlot = instance.reader.ReadByte();
                     var Platform = instance.reader.ReadByte();
                     Platforms[instance.whoAmI] = (PlatformType)Platform;
                 }
             }
-            catch { }
+            catch
+            {
+                // ignored
+            }
 
             return orig(instance, ref packetId, ref readOffset, ref start, ref length, ref messageType, maxPackets);
         }

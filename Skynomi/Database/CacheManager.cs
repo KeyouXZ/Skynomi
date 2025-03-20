@@ -9,15 +9,15 @@ namespace Skynomi.Database
 {
     public static class CacheManager
     {
-        private static Skynomi.Database.Database db = new();
-        private static ConcurrentDictionary<string, object> _cache = new ConcurrentDictionary<string, object>();
-        private static ConcurrentDictionary<string, object> _lastCache = new ConcurrentDictionary<string, object>();
+        private static readonly Database db = new();
+        private static readonly ConcurrentDictionary<string, object> _cache = new ConcurrentDictionary<string, object>();
+        private static readonly ConcurrentDictionary<string, object> _lastCache = new ConcurrentDictionary<string, object>();
         public static CacheEntryManager Cache { get; } = new CacheEntryManager();
         private static CacheQueryManager QueryCache { get; } = new();
         private static TypeCacheManager TypeCache { get; } = new();
         private static ToDeleteManager ToRemove { get; } = new();
 
-        public static EventManager Events = new();
+        private static readonly EventManager Events = new();
 
         public static IEnumerable<string> GetAllCacheKeys() => _cache.Keys;
 
@@ -59,7 +59,7 @@ namespace Skynomi.Database
                 _type[cacheKey] = type;
             }
 
-            public Type GetType(string cacheKey) => _type.TryGetValue(cacheKey, out Type? type) ? type : null;
+            public Type GetType(string cacheKey) => _type.GetValueOrDefault(cacheKey);
         }
 
         private class ToDeleteManager
@@ -77,14 +77,14 @@ namespace Skynomi.Database
                 }
                 else
                 {
-                    trm?.Remove(value);
+                    trm.Remove(value);
                 }
             }
 
             public List<string> Get(string key)
             {
                 if (!_trm.ContainsKey(key)) return new List<string>();
-                return _trm.TryGetValue(key, out List<string>? trm) ? trm?.ToList() : null;
+                return _trm.TryGetValue(key, out List<string>? trm) ? trm.ToList() : null;
             }
         }
 
@@ -165,9 +165,7 @@ namespace Skynomi.Database
                     value = typedValue;
                     return true;
                 }
-#pragma warning disable CS8601 // Possible null reference assignment.
-                value = default;
-#pragma warning restore CS8601 // Possible null reference assignment.
+                value = default!;
                 return false;
             }
 
@@ -193,7 +191,7 @@ namespace Skynomi.Database
                             }
                             catch
                             {
-                                Skynomi.Utils.Log.Error($"Failed to deserialize JSON: {json}");
+                                Utils.Log.Error($"Failed to deserialize JSON: {json}");
                                 return default;
                             }
                         }
@@ -242,16 +240,16 @@ namespace Skynomi.Database
             {
                 try
                 {
-                    Skynomi.Utils.Log.General("Initializing " + _key + " cache...");
+                    Utils.Log.General("Initializing " + _key + " cache...");
 
                     TypeCache.SetType(_key, typeof(T));
                     Type t = TypeCache.GetType(_key);
 
-                    string query = CacheManager.QueryCache.GetQuery(_key, Skynomi.Database.Database._databaseType == "sqlite" ? "SqliteQuery" : "MysqlQuery");
+                    string query = QueryCache.GetQuery(_key, Database._databaseType == "sqlite" ? "SqliteQuery" : "MysqlQuery");
 
                     if (string.IsNullOrEmpty(query))
                     {
-                        Skynomi.Utils.Log.Error("No init query set");
+                        Utils.Log.Error("No init query set");
                         return false;
                     }
 
@@ -269,11 +267,9 @@ namespace Skynomi.Database
 
                     var deepCopy = ((ConcurrentDictionary<string, object>)_cache[_key])
                     .ToDictionary(entry => entry.Key, entry =>
-                        entry.Value != null
-                            ? (entry.Value.GetType().IsPrimitive || entry.Value is string || entry.Value is decimal
-                                ? entry.Value
-                                : JsonConvert.DeserializeObject(JsonConvert.SerializeObject(entry.Value), entry.Value.GetType()))
-                            : default(object));
+                        (entry.Value.GetType().IsPrimitive || entry.Value is string || entry.Value is decimal
+                            ? entry.Value
+                            : JsonConvert.DeserializeObject(JsonConvert.SerializeObject(entry.Value), entry.Value.GetType())));
 
 #pragma warning disable CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
                     _lastCache[_key] = new ConcurrentDictionary<string, object>(deepCopy);
@@ -283,7 +279,7 @@ namespace Skynomi.Database
                 }
                 catch (Exception ex)
                 {
-                    Skynomi.Utils.Log.Error($"Failed to init cache {_key}: {ex.Message}");
+                    Utils.Log.Error($"Failed to init cache {_key}: {ex.Message}");
                     return false;
                 }
             }
@@ -297,7 +293,7 @@ namespace Skynomi.Database
                 }
                 catch (Exception ex)
                 {
-                    Skynomi.Utils.Log.Error($"Failed to reload cache: {ex.Message}");
+                    Utils.Log.Error($"Failed to reload cache: {ex.Message}");
                     return false;
                 }
             }
@@ -306,11 +302,11 @@ namespace Skynomi.Database
             {
                 try
                 {
-                    string query = CacheManager.QueryCache.GetQuery(_key, Skynomi.Database.Database._databaseType == "sqlite" ? "SaveSqliteQuery" : "SaveMysqlQuery");
+                    string query = QueryCache.GetQuery(_key, Database._databaseType == "sqlite" ? "SaveSqliteQuery" : "SaveMysqlQuery");
 
                     if (string.IsNullOrEmpty(query))
                     {
-                        Skynomi.Utils.Log.Error($"No save query set for {_key}");
+                        Utils.Log.Error($"No save query set for {_key}");
                         return false;
                     }
 
@@ -326,14 +322,14 @@ namespace Skynomi.Database
 
                     bool toSave = false;
                     foreach (var kvp in cacheDict) { if (!lastCacheDict.TryGetValue(kvp.Key, out var lastValue) || !ReflectionHelper.AreObjectsEqual(lastValue, kvp.Value)) { toSave = true; break; } }
-                    ;
+
                     if (ToRemove.Get(_key).Any()) toSave = true;
                     if (!toSave) return true;
 
-                    Skynomi.Utils.Log.General("Saving " + _key + "...");
+                    Utils.Log.General("Saving " + _key + "...");
 
-                    var con = Skynomi.Database.Database._connection;
-                    System.Data.Common.DbConnection? database = Skynomi.Database.Database._databaseType == "sqlite"
+                    var con = Database._connection;
+                    System.Data.Common.DbConnection? database = Database._databaseType == "sqlite"
                         ? con as Microsoft.Data.Sqlite.SqliteConnection
                         : con as MySql.Data.MySqlClient.MySqlConnection;
 
@@ -341,87 +337,86 @@ namespace Skynomi.Database
                     database?.Close();
                     database?.Open();
 
-                    using (var transaction = database?.BeginTransaction())
+                    using var transaction = database?.BeginTransaction();
+                    try
                     {
-                        try
+                        using (var cmd = database?.CreateCommand())
                         {
-                            using (var cmd = database?.CreateCommand())
+                            foreach (string key in ToRemove.Get(_key))
                             {
-                                foreach (string key in ToRemove.Get(_key))
-                                {
-                                    string aquery = CacheManager.QueryCache.GetQuery(_key, Skynomi.Database.Database._databaseType == "sqlite" ? "SqliteQuery" : "MysqlQuery");
-                                    var match = Regex.Match(aquery, @"FROM\s+([\w\d_]+)", RegexOptions.IgnoreCase);
-                                    string table = match.Groups[1].Value;
-                                    var bmatch = Regex.Match(aquery, @"([\w]+)\s+AS\s+'Key'", RegexOptions.IgnoreCase);
-                                    string keyColumn = bmatch.Success ? bmatch.Groups[1].Value : "key";
+                                string aquery = QueryCache.GetQuery(_key, Database._databaseType == "sqlite" ? "SqliteQuery" : "MysqlQuery");
+                                var match = Regex.Match(aquery, @"FROM\s+([\w\d_]+)", RegexOptions.IgnoreCase);
+                                string table = match.Groups[1].Value;
+                                var bmatch = Regex.Match(aquery, @"([\w]+)\s+AS\s+'Key'", RegexOptions.IgnoreCase);
+                                string keyColumn = bmatch.Success ? bmatch.Groups[1].Value : "key";
 
-                                    cmd.CommandText = "DELETE FROM " + table + " WHERE " + keyColumn + " = @key";
+                                cmd!.CommandText = "DELETE FROM " + table + " WHERE " + keyColumn + " = @key";
+                                cmd.Parameters.Clear();
+                                cmd.AddParameter("@key", key);
+                                cmd.ExecuteNonQuery();
+
+                                ToRemove.Add(_key, key, false);
+                            }
+
+                            foreach (var kvp in cacheDict)
+                            {
+                                if (!lastCacheDict.TryGetValue(kvp.Key, out var lastValue) || !ReflectionHelper.AreObjectsEqual(lastValue, kvp.Value))
+                                {
+                                    cmd!.CommandText = query;
                                     cmd.Parameters.Clear();
-                                    cmd.AddParameter("@key", key);
+                                    cmd.AddParameter("@key", kvp.Key);
+
+                                    if (TypeCache.GetType(_key).IsPrimitiveOrString())
+                                    {
+                                        cmd.AddParameter("@value", kvp.Value);
+                                    }
+                                    else
+                                    {
+                                        string[] exs = new string[] { };
+                                        var matches = Regex.Matches(query, @"@value_([\w\d_]+)");
+                                        foreach (Match match in matches)
+                                        {
+                                            if (exs.Contains(match.Value))
+                                            {
+                                                continue;
+                                            }
+                                            exs = exs.Concat(new[] { match.Value }).ToArray();
+
+                                            string propertyName = match.Groups[1].Value;
+                                            object value = ReflectionHelper.GetPropertyValue(kvp.Value, propertyName);
+                                            cmd.AddParameter(match.Value, value);
+                                        }
+                                    }
+
+                                    // #region Debug
+                                    // Console.WriteLine($"Executing Query: {cmd.CommandText}");
+                                    // foreach (System.Data.Common.DbParameter param in cmd.Parameters)
+                                    // {
+                                    //     Console.WriteLine($"{param.ParameterName}: {param.Value}");
+                                    // }
+                                    // #endregion
+
                                     cmd.ExecuteNonQuery();
 
-                                    ToRemove.Add(_key, key, false);
-                                }
-
-                                foreach (var kvp in cacheDict)
-                                {
-                                    if (!lastCacheDict.TryGetValue(kvp.Key, out var lastValue) || !ReflectionHelper.AreObjectsEqual(lastValue, kvp.Value))
-                                    {
-                                        cmd.CommandText = query;
-                                        cmd.Parameters.Clear();
-                                        cmd.AddParameter("@key", kvp.Key);
-
-                                        if (TypeCache.GetType(_key).IsPrimitiveOrString())
-                                        {
-                                            cmd.AddParameter("@value", kvp.Value);
-                                        }
-                                        else
-                                        {
-                                            string[] exs = new string[] { };
-                                            var matches = Regex.Matches(query, @"@value_([\w\d_]+)");
-                                            foreach (Match match in matches)
-                                            {
-                                                if (exs.Contains(match.Value))
-                                                {
-                                                    continue;
-                                                }
-                                                exs = exs.Concat(new string[] { match.Value }).ToArray();
-
-                                                string propertyName = match.Groups[1].Value;
-                                                object value = ReflectionHelper.GetPropertyValue(kvp.Value, propertyName);
-                                                cmd.AddParameter(match.Value, value ?? DBNull.Value);
-                                            }
-                                        }
-
-                                        // #region Debug
-                                        // Console.WriteLine($"Executing Query: {cmd.CommandText}");
-                                        // foreach (System.Data.Common.DbParameter param in cmd.Parameters)
-                                        // {
-                                        //     Console.WriteLine($"{param.ParameterName}: {param.Value}");
-                                        // }
-                                        // #endregion
-
-                                        cmd.ExecuteNonQuery();
-
-                                        lastCacheDict[kvp.Key] = kvp.Value;
-                                    }
+                                    lastCacheDict[kvp.Key] = kvp.Value;
                                 }
                             }
-                            transaction?.Commit();
-                            database?.Close();
                         }
-                        catch (Exception)
-                        {
-                            transaction?.Rollback();
-                            database?.Close();
-                            throw;
-                        }
+                        transaction?.Commit();
+                        database?.Close();
                     }
+                    catch (Exception)
+                    {
+                        transaction?.Rollback();
+                        database?.Close();
+                        throw;
+                    }
+
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    Skynomi.Utils.Log.Error($"Failed to save cache {_key}: {ex.ToString()}");
+                    Utils.Log.Error($"Failed to save cache {_key}: {ex}");
                     return false;
                 }
             }
@@ -445,11 +440,11 @@ namespace Skynomi.Database
             {
                 foreach (var key in _cache.Keys)
                 {
-                    Type type = CacheManager.TypeCache.GetType(key);
-                    var getCacheMethod = typeof(CacheManager.CacheEntryManager)
+                    Type type = TypeCache.GetType(key);
+                    var getCacheMethod = typeof(CacheEntryManager)
                         .GetMethod("GetCache")
                         ?.MakeGenericMethod(type);
-                    var cacheEntry = getCacheMethod?.Invoke(CacheManager.Cache, new object[] { key });
+                    var cacheEntry = getCacheMethod?.Invoke(Cache, new object[] { key });
                     var saveMethod = cacheEntry?.GetType().GetMethod("Save");
                     saveMethod?.Invoke(cacheEntry, null);
                 }
@@ -457,7 +452,7 @@ namespace Skynomi.Database
             }
             catch (Exception ex)
             {
-                Skynomi.Utils.Log.Error($"Failed to save all cache: {ex.Message}");
+                Utils.Log.Error($"Failed to save all cache: {ex.Message}");
                 return false;
             }
         }
@@ -477,16 +472,16 @@ namespace Skynomi.Database
                     while (!token.IsCancellationRequested)
                     {
                         await Task.Delay(intervalInSeconds * 1000, token);
-                        Skynomi.Utils.Log.General(Skynomi.Utils.Messages.CacheSaving);
+                        Utils.Log.General(Utils.Messages.CacheSaving);
                         SaveAll();
-                        Skynomi.Utils.Log.Info(Skynomi.Utils.Messages.CacheSaved);
+                        Utils.Log.Info(Utils.Messages.CacheSaved);
                     }
                 }, token);
                 return true;
             }
             catch (Exception ex)
             {
-                Skynomi.Utils.Log.Error($"Failed to auto save cache: {ex.Message}");
+                Utils.Log.Error($"Failed to auto save cache: {ex.Message}");
                 return false;
             }
         }
@@ -509,16 +504,11 @@ namespace Skynomi.Database
     {
         public static object GetPropertyValue(object obj, string propertyName)
         {
-            if (obj == null) return null;
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-            PropertyInfo prop = obj.GetType().GetProperty(propertyName);
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+            PropertyInfo? prop = obj.GetType().GetProperty(propertyName);
             return prop?.GetValue(obj, null);
         }
         public static bool AreObjectsEqual(object obj1, object obj2)
         {
-            if (obj1 == null || obj2 == null) return obj1 == obj2;
-
             if (obj1.GetType().IsPrimitive || obj1 is string)
             {
                 return Equals(obj1, obj2);
@@ -531,7 +521,7 @@ namespace Skynomi.Database
             {
                 var val1 = prop.GetValue(obj1);
                 var val2 = prop.GetValue(obj2);
-                if (!object.Equals(val1, val2)) return false;
+                if (!Equals(val1, val2)) return false;
             }
             return true;
         }

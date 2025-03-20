@@ -2,19 +2,19 @@ using TShockAPI;
 
 namespace Skynomi.Utils
 {
-    public class Log
+    public abstract class Log
     {
         private static readonly ConsoleColor NameColor = ConsoleColor.Magenta;
         
         private static void CreateFolder() {
             try
             {
-                if (!Directory.Exists(Skynomi.SkynomiPlugin.config.LogPath)) {
-                    Directory.CreateDirectory(Skynomi.SkynomiPlugin.config.LogPath);
+                if (!Directory.Exists(SkynomiPlugin.config.LogPath)) {
+                    Directory.CreateDirectory(SkynomiPlugin.config.LogPath);
                 }
             } catch (Exception ex) {
                 Console.ForegroundColor = NameColor;
-                Console.Write($"{Skynomi.Utils.Messages.Name} ");
+                Console.Write($"{Messages.Name} ");
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.ToString());
                 Console.ResetColor();
@@ -47,7 +47,7 @@ namespace Skynomi.Utils
         public static void Info(string message) {
             CreateFolder();
             Console.ForegroundColor = NameColor;
-            Console.Write($"{Skynomi.Utils.Messages.Name} ");
+            Console.Write($"{Messages.Name} ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(message);
             Console.ResetColor();
@@ -57,7 +57,7 @@ namespace Skynomi.Utils
         public static void Error(string message) {
             CreateFolder();
             Console.ForegroundColor = NameColor;
-            Console.Write($"{Skynomi.Utils.Messages.Name} ");
+            Console.Write($"{Messages.Name} ");
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
             Console.ResetColor();
@@ -67,7 +67,7 @@ namespace Skynomi.Utils
         public static void Success(string message) {
             CreateFolder();
             Console.ForegroundColor = NameColor;
-            Console.Write($"{Skynomi.Utils.Messages.Name} ");
+            Console.Write($"{Messages.Name} ");
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(message);
             Console.ResetColor();
@@ -77,7 +77,7 @@ namespace Skynomi.Utils
         public static void Warn(string message) {
             CreateFolder();
             Console.ForegroundColor = NameColor;
-            Console.Write($"{Skynomi.Utils.Messages.Name} ");
+            Console.Write($"{Messages.Name} ");
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(message);
             Console.ResetColor();
@@ -87,7 +87,7 @@ namespace Skynomi.Utils
         public static void General(string message) {
             CreateFolder();
             Console.ForegroundColor = NameColor;
-            Console.Write($"{Skynomi.Utils.Messages.Name} ");
+            Console.Write($"{Messages.Name} ");
             Console.ResetColor();
             Console.WriteLine(message);
             LogFile(message);

@@ -8,7 +8,7 @@ namespace Skynomi.RankSystem
         [JsonProperty("Use Parent for Rank")]
         public bool useParent { get; set; } = true;
         [JsonProperty("Announce Rank Up")]
-        public bool announceRankUp { get; set; } = false;
+        public bool announceRankUp { get; set; }
         [JsonProperty("Enable Rank Down")]
         public bool enableRankDown { get; set; } = true;
         public Dictionary<string, Rank> Ranks { get; set; } = new Dictionary<string, Rank>();
@@ -21,55 +21,56 @@ namespace Skynomi.RankSystem
 
             try
             {
-                Config config = new Config();
-
                 var defaultConfig = new Config().defaultConfig();
                 if (!File.Exists(configPath))
                 {
                     File.WriteAllText(configPath, JsonConvert.SerializeObject(defaultConfig, Formatting.Indented));
                 }
-                config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath)) ?? new Config();
+                var config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath)) ?? new Config();
 
                 return config;
             }
 
             catch (Exception ex)
             {
-                Skynomi.Utils.Log.Error(ex.ToString());
+                Utils.Log.Error(ex.ToString());
                 return new Config();
             }
         }
 
         private Config defaultConfig()
         {
-            var defaultConfig = new Config();
-
-            defaultConfig.Ranks["Rank1"] = new Rank
+            var defaultConfig = new Config
             {
-                Prefix = "Level 1",
-                Suffix = "[i:4444]",
-                ChatColor = new int[] { 255, 255, 255 },
-                Cost = 100,
-                Permission = "",
-                Rewards = new Dictionary<string, int>
+                Ranks =
                 {
-                    { "1", 1 },
-                    { "2", 2 }
-                }
-            };
-
-            defaultConfig.Ranks["Rank2"] = new Rank
-            {
-                Prefix = "Level 2",
-                Suffix = "[i:4444]",
-                ChatColor = new int[] { 255, 255, 255 },
-                Cost = 200,
-                Permission = "",
-                Rewards = new Dictionary<string, int>
+                    ["Rank1"] = new Rank
                     {
-                        { "1", 1 },
-                        { "2", 2 }
+                        Prefix = "Level 1",
+                        Suffix = "[i:4444]",
+                        ChatColor = new[] { 255, 255, 255 },
+                        Cost = 100,
+                        Permission = "",
+                        Rewards = new Dictionary<string, int>
+                        {
+                            { "1", 1 },
+                            { "2", 2 }
+                        }
+                    },
+                    ["Rank2"] = new Rank
+                    {
+                        Prefix = "Level 2",
+                        Suffix = "[i:4444]",
+                        ChatColor = new[] { 255, 255, 255 },
+                        Cost = 200,
+                        Permission = "",
+                        Rewards = new Dictionary<string, int>
+                        {
+                            { "1", 1 },
+                            { "2", 2 }
+                        }
                     }
+                }
             };
 
             return defaultConfig;
@@ -87,7 +88,7 @@ namespace Skynomi.RankSystem
             public int[] ChatColor = new int[]{};
 
             [JsonProperty("Cost")]
-            public int Cost = 0;
+            public int Cost;
 
             [JsonProperty("Permission")]
             public string Permission = string.Empty;

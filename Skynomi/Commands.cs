@@ -3,30 +3,30 @@ using TShockAPI;
 
 namespace Skynomi
 {
-    public class Commands
+    public abstract class Commands
     {
-        private static Config config;
-        private static Skynomi.Database.Database database = new Database.Database();
+        private static Config _config;
+        private static readonly Skynomi.Database.Database Database = new();
         public static void Initialize()
         {
-            config = Config.Read();
+            _config = Config.Read();
 
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Pay, Pay, "pay")
+            TShockAPI.Commands.ChatCommands.Add(new Command(Utils.Permissions.Pay, Pay, "pay")
             {
                 AllowServer = false,
                 HelpText = "Allows a player to send currency to another player."
             });
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Balance, Balance, "balance", "bal")
+            TShockAPI.Commands.ChatCommands.Add(new Command(Utils.Permissions.Balance, Balance, "balance", "bal")
             {
                 AllowServer = true,
                 HelpText = "Displays the player's current currency balance."
             });
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Admin, Admin, "admin")
+            TShockAPI.Commands.ChatCommands.Add(new Command(Utils.Permissions.Admin, Admin, "admin")
             {
                 AllowServer = true,
                 HelpText = "Admin commands:\nsetbal <player> <amount> - Sets the balance of a player."
             });
-            TShockAPI.Commands.ChatCommands.Add(new Command(Skynomi.Utils.Permissions.Skynomi, SkynomiCmd, "skynomi", "sk")
+            TShockAPI.Commands.ChatCommands.Add(new Command(Utils.Permissions.Skynomi, SkynomiCmd, "skynomi", "sk")
             {
                 AllowServer = true,
                 HelpText = "Use /skynomi help to display all commands."
@@ -35,11 +35,11 @@ namespace Skynomi
 
         public static void Reload()
         {
-            config = Config.Read();
+            _config = Config.Read();
         }
 
         // Commands
-        public static void Pay(CommandArgs args)
+        private static void Pay(CommandArgs args)
         {
             #region Pay
             if (args.Player == null)
@@ -57,7 +57,11 @@ namespace Skynomi
             string targetUsername = args.Parameters.Count > 0 ? args.Parameters[0] : args.Player.Name;
 
             var targetPlayer = TShock.Players
-            .Where(p => p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
+            .Where(p =>
+            {
+                if (p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase)) return true;
+                return false;
+            })
             .FirstOrDefault();
 
             if (targetPlayer == null)
@@ -71,9 +75,7 @@ namespace Skynomi
                 return;
             }
 
-            long balancePlayer = database.GetBalance(args.Player.Name);
-            long balanceTarget = database.GetBalance(targetPlayer.Name);
-
+            long balancePlayer = Database.GetBalance(args.Player.Name);
 
             // Check if the player has enough balance to pay
             if (!long.TryParse(args.Parameters[1], out long amount))
@@ -90,19 +92,19 @@ namespace Skynomi
 
             if (balancePlayer < amount)
             {
-                args.Player.SendErrorMessage($"You do not have enough {config.Currency} to pay.");
+                args.Player.SendErrorMessage($"You do not have enough {_config.Currency} to pay.");
                 return;
             }
 
-            database.RemoveBalance(args.Player.Name, amount);
-            database.AddBalance(targetPlayer.Name, amount);
+            Database.RemoveBalance(args.Player.Name, amount);
+            Database.AddBalance(targetPlayer.Name, amount);
 
-            args.Player.SendInfoMessage($"You have paid {Skynomi.Utils.Util.CurrencyFormat(amount)} to {targetPlayer.Name}.");
-            targetPlayer.SendInfoMessage($"You have received {Skynomi.Utils.Util.CurrencyFormat(amount)} from {args.Player.Name}.");
+            args.Player.SendInfoMessage($"You have paid {Utils.Util.CurrencyFormat(amount)} to {targetPlayer.Name}.");
+            targetPlayer.SendInfoMessage($"You have received {Utils.Util.CurrencyFormat(amount)} from {args.Player.Name}.");
             #endregion
         }
 
-        public static void Balance(CommandArgs args)
+        private static void Balance(CommandArgs args)
         {
             #region Balance
             try
@@ -114,10 +116,14 @@ namespace Skynomi
                 string targetUsername = args.Parameters.Count > 0 ? args.Parameters[0] : args.Player.Name;
 
                 var targetPlayer = TShock.Players
-                .Where(p => p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
+                .Where(p =>
+                {
+                    if (p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase)) return true;
+                    return false;
+                })
                 .FirstOrDefault();
 
-                if (args.Player == TShockAPI.TSPlayer.Server && args.Parameters.Count == 0)
+                if (args.Player == TSPlayer.Server && args.Parameters.Count == 0)
                 {
                     args.Player.SendErrorMessage("You cannot see your balance from the console.");
                     return;
@@ -129,55 +135,50 @@ namespace Skynomi
                     return;
                 }
 
-                long balance = database.GetBalance(targetPlayer.Name);
+                long balance = Database.GetBalance(targetPlayer.Name);
 
-                if (args.Parameters.Count == 0)
-                {
-                    targetUsername = "Your";
-                }
-                else
-                {
-                    targetUsername = $"{targetPlayer.Name}'s";
-                }
+                targetUsername = args.Parameters.Count == 0 ? "Your" : $"{targetPlayer.Name}'s";
 
-                args.Player.SendInfoMessage($"{targetUsername} balance: {Skynomi.Utils.Util.CurrencyFormat(balance)}");
+                args.Player.SendInfoMessage($"{targetUsername} balance: {Utils.Util.CurrencyFormat(balance)}");
                 #endregion
             }
             catch (Exception ex)
             {
                 args.Player.SendErrorMessage(ex.ToString());
-                return;
             }
         }
 
         // Admin commands
-        public static void Admin(CommandArgs args)
+        private static void Admin(CommandArgs args)
         {
-            string usage = $"setbal: Set player's {config.Currency} to a specific amount. Use - to reduce user currency";
+            string usage = $"setbal: Set player's {_config.Currency} to a specific amount. Use - to reduce user currency";
 
             if (args.Parameters.Count == 0)
             {
                 args.Player.SendErrorMessage("Usage: /admin <command>");
                 args.Player.SendInfoMessage("Command list:");
                 args.Player.SendInfoMessage(usage);
-                return;
             }
             else if (args.Parameters[0] == "setbal")
             {
                 #region Setbal
-                if (!Skynomi.Utils.Util.CheckPermission(Skynomi.Utils.Permissions.AdminBalance, args)) return;
-                string SetbalUsage = "Usage: /admin setbal <player> <amount>";
+                if (!Utils.Util.CheckPermission(Utils.Permissions.AdminBalance, args)) return;
+                string setbalUsage = "Usage: /admin setbal <player> <amount>";
 
                 if (args.Parameters.Count < 2)
                 {
-                    args.Player.SendErrorMessage(SetbalUsage);
+                    args.Player.SendErrorMessage(setbalUsage);
                     return;
                 }
 
                 string targetUsername = args.Parameters.Count > 1 ? args.Parameters[1] : args.Player.Name;
 
                 var targetPlayer = TShock.Players
-                .Where(p => p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase))
+                .Where(p =>
+                {
+                    if (p != null && p.Name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase)) return true;
+                    return false;
+                })
                 .FirstOrDefault();
 
                 if (targetPlayer == null)
@@ -185,8 +186,7 @@ namespace Skynomi
                     args.Player.SendErrorMessage($"Player '{targetUsername}' not found.");
                     return;
                 }
-
-                long balanceTarget = database.GetBalance(targetPlayer.Name);
+                
 
                 if (!int.TryParse(args.Parameters[2], out int amount))
                 {
@@ -194,8 +194,8 @@ namespace Skynomi
                     return;
                 }
 
-                database.AddBalance(targetPlayer.Name, (int)amount);
-                args.Player.SendSuccessMessage($"Successfully gave {Skynomi.Utils.Util.CurrencyFormat(amount)} to {targetUsername}");
+                Database.AddBalance(targetPlayer.Name, amount);
+                args.Player.SendSuccessMessage($"Successfully gave {Utils.Util.CurrencyFormat(amount)} to {targetUsername}");
                 #endregion
             }
             else
@@ -203,11 +203,10 @@ namespace Skynomi
                 args.Player.SendErrorMessage("Usage: /admin <command>");
                 args.Player.SendSuccessMessage("Command list:");
                 args.Player.SendErrorMessage(usage);
-                return;
             }
         }
 
-        public static void SkynomiCmd(CommandArgs args)
+        private static void SkynomiCmd(CommandArgs args)
         {
             string usage = "Usage: /skynomi <command>";
 
@@ -218,12 +217,10 @@ namespace Skynomi
             if (args.Parameters.Count == 0)
             {
                 args.Player.SendInfoMessage(usage);
-                return;
             }
             else if (args.Parameters[0] == "help")
             {
                 args.Player.SendInfoMessage(sb.ToString());
-                return;
             }
             else if (args.Parameters[0] == "cache")
             {
@@ -232,7 +229,6 @@ namespace Skynomi
                 if (args.Parameters.Count < 2)
                 {
                     args.Player.SendInfoMessage(cacheUsage);
-                    return;
                 }
                 else if (args.Parameters[1] == "help")
                 {
@@ -244,7 +240,6 @@ namespace Skynomi
                     cacheSb.AppendLine("- reloadall [save] - Reload all cache data from the database");
                     cacheSb.AppendLine("- saveall - Save all cache data to the database");
                     args.Player.SendInfoMessage(cacheSb.ToString());
-                    return;
                 }
                 else if (args.Parameters[1] == "list")
                 {
@@ -256,7 +251,6 @@ namespace Skynomi
                         cacheSb.AppendLine($"- {cache}");
                     }
                     args.Player.SendInfoMessage(cacheSb.ToString());
-                    return;
                 }
                 else if (args.Parameters[1] == "reload")
                 {
@@ -295,7 +289,7 @@ namespace Skynomi
                     {
                         args.Player.SendSuccessMessage($"Reloaded {args.Parameters[2]} cache" + (!save ? " without saving" : ""));
                     }
-                    return;
+
                     #endregion
                 }
                 else if (args.Parameters[1] == "save")
@@ -320,7 +314,7 @@ namespace Skynomi
                     {
                         args.Player.SendSuccessMessage($"Saved {args.Parameters[2]} cache");
                     }
-                    return;
+
                     #endregion
                 }
                 else if (args.Parameters[1] == "reloadall")
@@ -343,7 +337,7 @@ namespace Skynomi
                             args.Player.SendErrorMessage($"Failed to reload {cacheKey} cache");
                         }
                     }
-                    return;
+
                     #endregion
                 }
                 else if (args.Parameters[1] == "saveall")
@@ -365,20 +359,17 @@ namespace Skynomi
                             args.Player.SendErrorMessage($"Failed to save {cacheKey} cache");
                         }
                     }
-                    return;
                     #endregion
                 }
                 else
                 {
                     args.Player.SendErrorMessage(cacheUsage);
-                    return;
                 }
                 #endregion
             }
             else
             {
                 args.Player.SendErrorMessage("Usage: /skynomi <command>");
-                return;
             }
         }
     }

@@ -9,7 +9,7 @@ namespace Skynomi {
         [JsonProperty("Currency Format")]
         public string CurrencyFormat { get; set; } = "{currency} {amount}";
         [JsonProperty("Abbreviasi Numerik")]
-        public bool AbbsreviasiNumeric { get; set; } = false;
+        public bool AbbsreviasiNumeric { get; set; }
         [JsonProperty("Reward Chance")]
         public int RewardChance { get; set; } = 100;
         [JsonProperty("Boss Reward")]
@@ -19,9 +19,9 @@ namespace Skynomi {
         [JsonProperty("Drop on Death")]
         public decimal DropOnDeath { get; set; } = 0.5m;
         [JsonProperty("Reward From Statue")]
-        public bool RewardFromStatue { get; set; } = false;
+        public bool RewardFromStatue { get; set; }
         [JsonProperty("Reward From Friendly NPC")]
-        public bool RewardFromFriendlyNPC { get; set; } = false;
+        public bool RewardFromFriendlyNpc { get; set; }
         [JsonProperty("Log Path")]
         public string LogPath { get; set; } = "tshock/Skynomi/logs";
 
@@ -42,7 +42,7 @@ namespace Skynomi {
 			}
 			
 			catch (Exception ex) {
-				Skynomi.Utils.Log.Error(ex.ToString());
+				Utils.Log.Error(ex.ToString());
 				return new Config();
 			}
         }

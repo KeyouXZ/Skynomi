@@ -12,15 +12,14 @@ namespace Skynomi.ShopSystem
         public Version Version => new Version(1, 1, 2);
         public string Author => "Keyou";
 
-        private static Skynomi.Config config;
-        private static ShopSystem.Config shopConfig;
+        private static Config shopConfig;
         private static System.Timers.Timer broadcastTimer;
         public void Initialize()
         {
-            config = Skynomi.Config.Read();
-            shopConfig = ShopSystem.Config.Read();
+            Skynomi.Config.Read();
+            shopConfig = Config.Read();
 
-            ShopSystem.Commands.Initialize();
+            Commands.Initialize();
         }
 
         public void Reload(ReloadEventArgs args)
@@ -30,19 +29,19 @@ namespace Skynomi.ShopSystem
                 broadcastTimer.Stop();
             }
 
-            config = Skynomi.Config.Read();
-            shopConfig = ShopSystem.Config.Read();
+            Skynomi.Config.Read();
+            shopConfig = Config.Read();
 
-            ShopSystem.Commands.Reload();
+            Commands.Reload();
 
             if (shopConfig.ProtectedByRegion && string.IsNullOrEmpty(shopConfig.ShopRegion))
             {
-                Skynomi.Utils.Log.Warn(ShopSystem.Messages.EmptyNEnableProtectedRegion);
+                Log.Warn(Messages.EmptyNEnableProtectedRegion);
             }
 
             if (shopConfig.AutoBroadcastShop && _List() != "No items available")
             {
-                Skynomi.Utils.Log.Warn(ShopSystem.Messages.AutoShopDisabled);
+                Log.Warn(Messages.AutoShopDisabled);
                 broadcastTimer = new System.Timers.Timer(shopConfig.BroadcastIntervalInSeconds * 1000);
                 broadcastTimer.Elapsed += OnBroadcastTimerElapsed;
                 broadcastTimer.AutoReset = true;
@@ -55,7 +54,7 @@ namespace Skynomi.ShopSystem
             // broadcast
             if (shopConfig.AutoBroadcastShop && _List() != "No items available")
             {
-                Skynomi.Utils.Log.Warn(ShopSystem.Messages.AutoShopDisabled);
+                Log.Warn(Messages.AutoShopDisabled);
                 broadcastTimer = new System.Timers.Timer(shopConfig.BroadcastIntervalInSeconds * 1000);
                 broadcastTimer.Elapsed += OnBroadcastTimerElapsed;
                 broadcastTimer.AutoReset = true;
@@ -64,11 +63,11 @@ namespace Skynomi.ShopSystem
 
             if (shopConfig.ProtectedByRegion && string.IsNullOrEmpty(shopConfig.ShopRegion))
             {
-                Skynomi.Utils.Log.Warn(ShopSystem.Messages.EmptyNEnableProtectedRegion);
+                Log.Warn(Messages.EmptyNEnableProtectedRegion);
             }
         }
 
-        public static string _List()
+        private static string _List()
         {
             // shop list
             string message = "Shop Items";
@@ -76,7 +75,7 @@ namespace Skynomi.ShopSystem
             foreach (var item in shopConfig.ShopItems)
             {
                 i++;
-                message += $"\n{i}. [i:{item.Key}] ({item.Key}) - B: {Skynomi.Utils.Util.CurrencyFormat(item.Value.buyPrice)} | S: {Skynomi.Utils.Util.CurrencyFormat(item.Value.sellPrice)}";
+                message += $"\n{i}. [i:{item.Key}] ({item.Key}) - B: {Util.CurrencyFormat(item.Value.buyPrice)} | S: {Util.CurrencyFormat(item.Value.sellPrice)}";
             }
 
             if (message == "Shop Items")
