@@ -317,6 +317,8 @@ See [Config Document](./Config.md) for this
   - New feature: EventManager for CacheManager
   - New feature: Logger for Skynomi (General, Info, Warning, Error, Success)
     - New Skynomi configuration: `"Log Path"`
+- Rank System: `v1.1.2` -> `v1.1.3`
+  - Bug fixed at creating group
 
 ## License
 
