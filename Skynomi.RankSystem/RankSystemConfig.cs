@@ -11,6 +11,6 @@ namespace Skynomi.RankSystem
 
     public abstract class Messages
     {
-        public static readonly string ParentSettingChanged = $"{Skynomi.Utils.Messages.Name} Use Parent for Rank setting changed, please restart the server to apply changes.";
+        public static readonly string ParentSettingChanged = "Use Parent for Rank setting changed, please restart the server to apply changes.";
     }
 }
