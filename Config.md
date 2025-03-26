@@ -176,6 +176,7 @@ This document details the configuration settings for the shop system.
 ```json
 "Shop Items": {
     "itemID": {
+        "Prefix": number,
         "Buy Price": number,
         "Sell Price": number
     }
@@ -183,6 +184,7 @@ This document details the configuration settings for the shop system.
 ```
 
 - `itemID`: String or number representing the unique identifier for the item
+- `Prefix`: Number representing the [prefix ID](https://terraria.wiki.gg/wiki/Prefix_IDs) for the item 
 - `Buy Price`: Number representing the cost of the item in the configured currency
 - `Sell Price`: Number representing the price at which the item can be sold back to the shop
 
@@ -196,10 +198,12 @@ This document details the configuration settings for the shop system.
   "Shop Region": "ShopRegion",
   "Shop Items": {
     "4444": {
+      "Prefix": 0,
       "Buy Price": 1000,
       "Sell Price": 900
     },
     "1": {
+      "Prefix": 15,
       "Buy Price": 2,
       "Sell Price": 1
     },

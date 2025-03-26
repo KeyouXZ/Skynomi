@@ -54,11 +54,13 @@ namespace Skynomi.ShopSystem
                 {
                     ["4444"] = new ShopItem
                     {
+                        prefix = 0,
                         buyPrice = 1000,
                         sellPrice = 900,
                     },
                     ["1"] = new ShopItem
                     {
+                        prefix = 15,
                         buyPrice = 2,
                         sellPrice = 1,
                     }
@@ -69,6 +71,8 @@ namespace Skynomi.ShopSystem
         }
 
         public class ShopItem {
+            [JsonProperty("Prefix")]
+            public int prefix { get; set; }
             [JsonProperty("Buy Price")]
             public int buyPrice { get; set; }
 

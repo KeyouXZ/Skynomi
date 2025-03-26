@@ -83,11 +83,13 @@ namespace Skynomi.ShopSystem
                     bool isThereAny = false;
                     string itemKey = "1";
                     int itemValue = 0;
+                    int itemPrefix = 0;
                     foreach (var item in shopConfig.ShopItems.Where(item => args.Parameters[1] == item.Key))
                     {
                         itemKey = item.Key;
                         itemValue = item.Value.buyPrice;
                         isThereAny = true;
+                        itemPrefix = item.Value.prefix;
                         break;
                     }
 
@@ -114,12 +116,16 @@ namespace Skynomi.ShopSystem
                     long totalPrice = itemValue * itemAmount;
                     if (balance < totalPrice)
                     {
-                        args.Player.SendErrorMessage($"You do not have enough {config.Currency} to buy this item. (Need {Utils.Util.CurrencyFormat((int)(totalPrice - balance))} more)");
+                        args.Player.SendErrorMessage($"You do not have enough {config.Currency} to buy this item. (Need {Utils.Util.CurrencyFormat(totalPrice - balance)} more)");
                         return;
                     }
 
-                    args.Player.SendInfoMessage($"You have bought [i/s{itemAmount}:{args.Parameters[1]}] for {Utils.Util.CurrencyFormat((int)(totalPrice))}");
-                    args.Player.GiveItem(itemId, itemAmount);
+                    bool itemCanUseThePrefix = TShock.Utils.GetItemById(itemId).CanApplyPrefix(itemPrefix);
+                    if (!itemCanUseThePrefix)
+                        itemPrefix = 0;
+
+                    args.Player.SendInfoMessage($"You have bought [i/s{itemAmount},p{itemPrefix}:{args.Parameters[1]}] for {Utils.Util.CurrencyFormat(totalPrice)}");
+                    args.Player.GiveItem(itemId, itemAmount, itemPrefix);
                     database.RemoveBalance(args.Player.Name, totalPrice);
 
                 }
@@ -255,7 +261,20 @@ namespace Skynomi.ShopSystem
                 int index = (currentPage - 1) * pageSize + 1;
                 foreach (var item in itemsToDisplay)
                 {
-                    message += $"\n{index}. [i:{item.Key}] ({item.Key}) - B: {Utils.Util.CurrencyFormat(item.Value.buyPrice)} | S: {Utils.Util.CurrencyFormat(item.Value.sellPrice)}";
+                    int itemId = Convert.ToInt32(item.Key);
+                    int prefix = 0;
+                    string prefixName = "";
+                    if (itemId != 0)
+                    {
+                        bool itemCanUseThePrefix = TShock.Utils.GetItemById(itemId).CanApplyPrefix(item.Value.prefix);
+                        if (itemCanUseThePrefix)
+                        {
+                            prefix = item.Value.prefix;
+                            prefixName = TShock.Utils.GetPrefixById(item.Value.prefix);
+                        }
+                    }
+
+                    message += $"\n{index}. [i/p{prefix}:{item.Key}] ({item.Key}) {(!string.IsNullOrWhiteSpace(prefixName) ? "[" + prefixName + "] " : "")}- B: {Utils.Util.CurrencyFormat(item.Value.buyPrice)} | S: {Utils.Util.CurrencyFormat(item.Value.sellPrice)}";
                     index++;
                 }
 

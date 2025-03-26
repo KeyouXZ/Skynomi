@@ -324,6 +324,8 @@ See [Config Document](./Config.md) for this
 
 - Skynomi: `v3.1.0` -> `v3.1.1`
   - Remove `{Utils.Messages.Name}` from log message
+- Shop System: `v1.1.2` -> `v1.2.0`
+  - Added `Prefix` option for item (requested by [@HikariiiSora](https://github.com/HikariiiSora))
 
 ## License
 
