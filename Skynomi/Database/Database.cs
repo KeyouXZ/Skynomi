@@ -21,7 +21,7 @@ namespace Skynomi.Database
             {
                 try
                 {
-                    Utils.Log.Info($"{Utils.Messages.Name} Connecting to MySQL database...");
+                    Utils.Log.Info($"Connecting to MySQL database...");
                     string mysqlHost = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[0] : _config.MySqlHost;
                     string mysqlPort = _config.MySqlHost.Contains(":") ? _config.MySqlHost.Split(':')[1] : "3306";
                     string connectionString = $"Server={mysqlHost};Port={mysqlPort};Database={_config.MySqlDbName};User={_config.MySqlUsername};Password={_config.MySqlPassword};Connection Timeout=30;Default Command Timeout=60;Allow User Variables=true;";
@@ -29,12 +29,12 @@ namespace Skynomi.Database
                     _connection = new MySqlConnection(connectionString);
                     ((MySqlConnection)_connection).Open();
                     ((MySqlConnection)_connection).Close();
-                    Utils.Log.Info($"{Utils.Messages.Name} Connected to MySQL database.");
+                    Utils.Log.Info($"Connected to MySQL database.");
                     CreateTables();
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log.Error($"{Utils.Messages.Name} Failed to connect to MySQL database: {ex}");
+                    Utils.Log.Error($"Failed to connect to MySQL database: {ex}");
                     if (_databaseType == "mysql")
                     {
                         _isFallback = true;
@@ -65,7 +65,7 @@ namespace Skynomi.Database
             }
             catch (Exception ex)
             {
-                Utils.Log.Error($"{Utils.Messages.Name} Failed to connect to SQLite database: {ex}");
+                Utils.Log.Error($"Failed to connect to SQLite database: {ex}");
             }
         }
 
@@ -132,7 +132,7 @@ namespace Skynomi.Database
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log.Error($"{Utils.Messages.Name} Failed to connect to database. Is it running?");
+                    Utils.Log.Error($"Failed to connect to database. Is it running?");
                     Utils.Log.Error(ex.ToString());
                     throw new InvalidOperationException($"{Utils.Messages.Name} Fatal error occurred. Unable to proceed with the database operation.");
                 }

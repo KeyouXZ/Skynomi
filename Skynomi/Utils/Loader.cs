@@ -67,14 +67,14 @@ namespace Skynomi.Utils
                         }
                         else
                         {
-                            Log.Error($"{Messages.Name} Failed to create instance of {type.FullName}. Ensure it implements ISkynomiExtension correctly.");
+                            Log.Error($"Failed to create instance of {type.FullName}. Ensure it implements ISkynomiExtension correctly.");
                         }
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"{Messages.Name} Failed to load {Path.GetFileName(file)}: {ex.Message}");
+                    Log.Error($"Failed to load {Path.GetFileName(file)}: {ex.Message}");
                 }
             }
         }
@@ -150,7 +150,7 @@ namespace Skynomi.Utils
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"{Messages.Name} Failed to reload {extension.Name}: {ex.Message}");
+                    Log.Error($"Failed to reload {extension.Name}: {ex.Message}");
                 }
             }
 
@@ -178,7 +178,7 @@ namespace Skynomi.Utils
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"{Messages.Name} Failed to PostInitialize {extension.Name}: {ex.Message}");
+                    Log.Error($"Failed to PostInitialize {extension.Name}: {ex.Message}");
                 }
             }
 
@@ -209,7 +209,7 @@ namespace Skynomi.Utils
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"{Messages.Name} Failed to dispose {extension.Name}: {ex.Message}");
+                    Log.Error($"Failed to dispose {extension.Name}: {ex.Message}");
                 }
             }
 

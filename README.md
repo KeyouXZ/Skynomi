@@ -320,6 +320,11 @@ See [Config Document](./Config.md) for this
 - Rank System: `v1.1.2` -> `v1.1.3`
   - Bug fixed at creating group
 
+**Version 3.1.1**
+
+- Skynomi: `v3.1.0` -> `v3.1.1`
+  - Remove `{Utils.Messages.Name}` from log message
+
 ## License
 
 This plugin is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html).

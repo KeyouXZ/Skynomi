@@ -8,10 +8,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>3.1.0</Version>
-		<FileVersion>3.1.0.0</FileVersion>
-		<AssemblyVersion>3.1.0.0</AssemblyVersion>
-		<InformationalVersion>3.1.0</InformationalVersion>
+		<Version>3.1.1</Version>
+		<FileVersion>3.1.1.0</FileVersion>
+		<AssemblyVersion>3.1.1.0</AssemblyVersion>
+		<InformationalVersion>3.1.1</InformationalVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
