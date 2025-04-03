@@ -326,6 +326,7 @@ See [Config Document](./Config.md) for this
 - Shop System: `v1.1.2` -> `v1.2.0`
   - Added `Prefix` option for item (requested by [@HikariiiSora](https://github.com/HikariiiSora))
   - Shop items can be bought/sold under the name and id
+  - Shop list now has item names
 
 ## License
 
