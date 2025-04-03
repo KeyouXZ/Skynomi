@@ -31,7 +31,7 @@
 
 **Example:**
 
-```
+```cmd
 /balance
 /balance Keyou
 ```
@@ -50,12 +50,11 @@ This command will return the amount of virtual currency the player currently has
 
 **Example**:
 
-```
+```cmd
 /pay Keyou 500
 ```
 
 This will send 500 units of virtual currency to the player named "Keyou".
-
 
 #### `/admin setbal`
 
@@ -69,7 +68,7 @@ This will send 500 units of virtual currency to the player named "Keyou".
 
 **Example:**
 
-```
+```cmd
 /admin setbal Keyou 1000
 /admin setbal Keyou -500
 ```
@@ -85,7 +84,7 @@ This will send 500 units of virtual currency to the player named "Keyou".
 
 **Example:**
 
-```
+```cmd
 /listextension
 /listextension Shop
 ```
@@ -114,7 +113,7 @@ This will send 500 units of virtual currency to the player named "Keyou".
 
 **Example:**
 
-```
+```cmd
 /shop list 2
 ```
 
@@ -127,12 +126,12 @@ This command will show a list of all items that can be bought, along with their 
 **Usage**:
 `/shop buy <item> [amount]`
 
-- `<item>`: The id of the item you want to purchase.
+- `<item>`: The name or id of the item you want to purchase.
 - `[amount]`: The quantity of the item you want to purchase (optional, defaults to 1 if not specified).
 
 **Example:**
 
-```
+```cmd
 /shop buy 4444 1
 ```
 
@@ -143,12 +142,12 @@ This command will show a list of all items that can be bought, along with their 
 **Usage**:
 `/shop sell <item> [amount]`
 
-- `<item>`: The id of the item you want to sell.
+- `<item>`: The name or id of the item you want to sell.
 - `[amount]`: The quantity of the item you want to sell (optional, defaults to 1 if not specified).
 
 **Example:**
 
-```
+```cmd
 /shop sell 4444 1
 ```
 
@@ -188,7 +187,7 @@ This command will show a list of all items that can be bought, along with their 
 
 **Example:**
 
-```
+```cmd
 /rankutils info Master
 ```
 
@@ -326,6 +325,7 @@ See [Config Document](./Config.md) for this
   - Remove `{Utils.Messages.Name}` from log message
 - Shop System: `v1.1.2` -> `v1.2.0`
   - Added `Prefix` option for item (requested by [@HikariiiSora](https://github.com/HikariiiSora))
+  - Shop items can be bought/sold under the name and id
 
 ## License
 

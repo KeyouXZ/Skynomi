@@ -62,14 +62,18 @@ namespace Skynomi.ShopSystem
                         args.Player.SendErrorMessage(usage);
                         return;
                     }
-                    else if (!int.TryParse(args.Parameters[1], out _))
-                    {
-                        args.Player.SendErrorMessage("Invalid item ID");
-                        return;
-                    }
                     else if (args.Parameters.Count >= 3 && !int.TryParse(args.Parameters[2], out itemAmount))
                     {
                         args.Player.SendErrorMessage("Invalid amount");
+                        return;
+                    }
+
+                    var item = TShock.Utils.GetItemByIdOrName(args.Parameters[1]).Where(x =>
+                    x.Name.ToLower() == args.Parameters[1].ToLower() ||
+                    int.TryParse(args.Parameters[1], out int parsedId) && x.netID == parsedId).FirstOrDefault();
+                    if (item == default)
+                    {
+                        args.Player.SendErrorMessage("Item not found!");
                         return;
                     }
 
@@ -84,19 +88,19 @@ namespace Skynomi.ShopSystem
                     string itemKey = "1";
                     int itemValue = 0;
                     int itemPrefix = 0;
-                    foreach (var item in shopConfig.ShopItems.Where(item => args.Parameters[1] == item.Key))
+                    foreach (var i in shopConfig.ShopItems.Where(it => item.netID.ToString() == it.Key))
                     {
-                        itemKey = item.Key;
-                        itemValue = item.Value.buyPrice;
+                        itemKey = i.Key;
+                        itemValue = i.Value.buyPrice;
                         isThereAny = true;
-                        itemPrefix = item.Value.prefix;
+                        itemPrefix = i.Value.prefix;
                         break;
                     }
 
                     // check item
                     if (!isThereAny)
                     {
-                        args.Player.SendErrorMessage("Item not found");
+                        args.Player.SendErrorMessage("Item not found in shop");
                         return;
                     }
 
@@ -135,6 +139,7 @@ namespace Skynomi.ShopSystem
                 }
             }
             #endregion
+
             #region Sell
             else if (args.Parameters[0] == "sell")
             {
@@ -148,9 +153,12 @@ namespace Skynomi.ShopSystem
                     return;
                 }
 
-                if (!int.TryParse(args.Parameters[1], out var itemID))
+                var item = TShock.Utils.GetItemByIdOrName(args.Parameters[1]).Where(x =>
+                    x.Name.ToLower() == args.Parameters[1].ToLower() ||
+                    int.TryParse(args.Parameters[1], out int parsedId) && x.netID == parsedId).FirstOrDefault();
+                if (item == default)
                 {
-                    args.Player.SendErrorMessage("Invalid item ID");
+                    args.Player.SendErrorMessage("Item not found!");
                     return;
                 }
 
@@ -170,11 +178,11 @@ namespace Skynomi.ShopSystem
                 // Check Item
                 bool isThereAny = false;
                 int itemValue = 0;
-                foreach (var item in shopConfig.ShopItems)
+                foreach (var i in shopConfig.ShopItems)
                 {
-                    if (itemID.ToString() == item.Key)
+                    if (item.netID.ToString() == i.Key)
                     {
-                        itemValue = item.Value.sellPrice;
+                        itemValue = i.Value.sellPrice;
                         isThereAny = true;
                         break;
                     }
@@ -188,9 +196,9 @@ namespace Skynomi.ShopSystem
                 }
 
                 int totalOwned = 0;
-                foreach (var item in args.Player.TPlayer.inventory)
+                foreach (var i in args.Player.TPlayer.inventory)
                 {
-                    if (item.type == itemID)
+                    if (i.type == item.netID)
                     {
                         totalOwned += item.stack;
                     }
@@ -214,7 +222,7 @@ namespace Skynomi.ShopSystem
                 int remainingToRemove = amount;
                 for (int i = 0; i < args.Player.TPlayer.inventory.Length; i++)
                 {
-                    if (args.Player.TPlayer.inventory[i].type == itemID)
+                    if (args.Player.TPlayer.inventory[i].type == item.netID)
                     {
                         if (args.Player.TPlayer.inventory[i].stack > remainingToRemove)
                         {
@@ -230,10 +238,11 @@ namespace Skynomi.ShopSystem
                 }
 
                 long totalPrice = itemValue * amount;
-                args.Player.SendInfoMessage($"You have sell [i/s{amount}:{itemID}] for {Utils.Util.CurrencyFormat((int)totalPrice)}");
+                args.Player.SendInfoMessage($"You have sell [i/s{amount}:{item.netID}] for {Utils.Util.CurrencyFormat((int)totalPrice)}");
                 database.AddBalance(args.Player.Name, (int)totalPrice);
             }
             #endregion
+
             #region List
             else if (args.Parameters[0] == "list")
             {
@@ -274,7 +283,7 @@ namespace Skynomi.ShopSystem
                         }
                     }
 
-                    message += $"\n{index}. [i/p{prefix}:{item.Key}] ({item.Key}) {(!string.IsNullOrWhiteSpace(prefixName) ? "[" + prefixName + "] " : "")}- B: {Utils.Util.CurrencyFormat(item.Value.buyPrice)} | S: {Utils.Util.CurrencyFormat(item.Value.sellPrice)}";
+                    message += $"\n{index}. [i/p{prefix}:{item.Key}] {TShock.Utils.GetItemById(itemId).Name} ({item.Key}) {(!string.IsNullOrWhiteSpace(prefixName) ? "[" + prefixName + "] " : "")}- B: {Utils.Util.CurrencyFormat(item.Value.buyPrice)} | S: {Utils.Util.CurrencyFormat(item.Value.sellPrice)}";
                     index++;
                 }
 
