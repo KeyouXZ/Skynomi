@@ -87,6 +87,15 @@ This document details the configuration settings for the currency and reward sys
 | Description | Enables/disables rewards from friendly NPCs |
 | Default | false |
 
+### Blacklist NPC
+
+| Field | Value |
+|-------|--------|
+| Type | Array |
+| Description | List of NPC IDs to exclude from rewards |
+| Default | [] |
+| Example | `[1, 2, 3]` |
+
 ## Others
 
 ### Log Path
@@ -110,6 +119,7 @@ This document details the configuration settings for the currency and reward sys
   "Drop on Death": 0.5,
   "Reward From Statue": false,
   "Reward From Friendly NPC": false,
+  "Blacklist Npc": [],
   "Log Path": "tshock/Skynomi/logs"
 }
 ```

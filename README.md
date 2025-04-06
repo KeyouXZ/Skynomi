@@ -328,6 +328,12 @@ See [Config Document](./Config.md) for this
   - Shop items can be bought/sold under the name and id
   - Shop list now has item names
 
+**Version 3.2.0**
+
+- Skynomi: `v3.1.1` -> `v3.2.0`
+  - Config: `"Blacklist NPC"` from reward system
+  - Fix `Reward From Friendly NPC` not working
+
 ## License
 
 This plugin is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html).

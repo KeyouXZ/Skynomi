@@ -14,16 +14,16 @@ namespace Skynomi
         public override string Author => "Keyou";
         public override string Description => "Terraria Economy System";
         public override string Name => "Skynomi";
-        public override Version Version => new Version(3, 1, 1);
+        public override Version Version => new(3, 2, 0);
 
-        public static Skynomi.Config config;
-        private Skynomi.Database.Database database;
+        public static Config config;
+        private Database.Database database;
 
         private Dictionary<int, NpcInteraction> npcInteractions = new Dictionary<int, NpcInteraction>();
         public static string timeBoot;
 
         public static SkynomiPlugin Instance { get; private set; }
-        
+
         public SkynomiPlugin(Main game) : base(game)
         {
             Instance = this;
@@ -33,7 +33,7 @@ namespace Skynomi
         {
             timeBoot = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
             config = Config.Read();
-            database = new Skynomi.Database.Database();
+            database = new Database.Database();
             database.InitializeDatabase();
             database.BalanceInitialize();
 
@@ -44,11 +44,11 @@ namespace Skynomi
             GeneralHooks.ReloadEvent += Reload;
             GetDataHandlers.KillMe += PlayerDead;
 
-            Skynomi.Commands.Initialize();
-            Skynomi.Utils.Util.Initialize();
+            Commands.Initialize();
+            Utils.Util.Initialize();
 
             // Extension
-            Skynomi.Utils.Loader.Initialize();
+            Utils.Loader.Initialize();
         }
 
         protected override void Dispose(bool disposing)
@@ -56,18 +56,18 @@ namespace Skynomi
             if (disposing)
             {
                 // Extension
-                Skynomi.Utils.Loader.Dispose();
-                
+                Utils.Loader.Dispose();
+
                 ServerApi.Hooks.NpcKilled.Deregister(this, OnNpcKilled);
                 ServerApi.Hooks.NpcStrike.Deregister(this, OnNpcHit);
                 GeneralHooks.ReloadEvent -= Reload;
                 GetDataHandlers.KillMe -= PlayerDead;
 
-                Skynomi.Utils.Log.General(Skynomi.Utils.Messages.CacheSaving);
-                Skynomi.Database.CacheManager.StopAutoSave();
-                Skynomi.Database.CacheManager.SaveAll();
-                Skynomi.Utils.Log.Info(Skynomi.Utils.Messages.CacheSaved);
-                Skynomi.Database.Database.Close();
+                Utils.Log.General(Utils.Messages.CacheSaving);
+                Database.CacheManager.StopAutoSave();
+                Database.CacheManager.SaveAll();
+                Utils.Log.Info(Utils.Messages.CacheSaved);
+                Database.Database.Close();
 
             }
             base.Dispose(disposing);
@@ -77,26 +77,26 @@ namespace Skynomi
         {
             config = Config.Read();
 
-            Skynomi.Database.Database.Close();
-            database = new Skynomi.Database.Database();
+            Database.Database.Close();
+            database = new Database.Database();
             database.InitializeDatabase();
-            Skynomi.Database.Database.PostInitialize();
+            Database.Database.PostInitialize();
 
-            Skynomi.Commands.Reload();
-            Skynomi.Utils.Util.Reload();
+            Commands.Reload();
+            Utils.Util.Reload();
 
             // Extension
-            Skynomi.Utils.Loader.Reload(args);
+            Utils.Loader.Reload(args);
 
-            args.Player.SendSuccessMessage(Skynomi.Utils.Messages.Reload);
+            args.Player.SendSuccessMessage(Utils.Messages.Reload);
         }
 
         private void OnPostInitialize(EventArgs args)
         {
-            Skynomi.Database.Database.PostInitialize();
-            
+            Database.Database.PostInitialize();
+
             // Extension
-            Skynomi.Utils.Loader.PostInitialize(args);
+            Utils.Loader.PostInitialize(args);
         }
 
         private void OnPlayerJoin(GreetPlayerEventArgs args)
@@ -109,6 +109,10 @@ namespace Skynomi
             int npcId = args.Npc.whoAmI;
             TSPlayer player = TShock.Players[args.Player.whoAmI];
             if (player == null) return;
+
+            // Blacklist check
+            if (config.BlacklistNpc.Contains(args.Npc.netID))
+                return;
 
             string playerName = player.Name;
 
@@ -137,12 +141,25 @@ namespace Skynomi
                 if (args.npc.lastInteraction < 0 || args.npc.lastInteraction >= TShock.Players.Length)
                     return;
 
+                // Blacklist check
+                if (config.BlacklistNpc.Contains(args.npc.netID))
+                    return;
+
                 var killer = TShock.Players[args.npc.lastInteraction];
                 if (killer == null || !killer.Active)
                     return;
 
-                if (args.npc.SpawnedFromStatue && !config.RewardFromStatue) return;
-                if (args.npc.friendly && !config.RewardFromFriendlyNpc) return;
+                if (args.npc.SpawnedFromStatue && !config.RewardFromStatue)
+                {
+                    npcInteractions.Remove(args.npc.whoAmI);
+                    return;
+                }
+
+                if ((args.npc.friendly || args.npc.CountsAsACritter) && !config.RewardFromFriendlyNpc)
+                {
+                    npcInteractions.Remove(args.npc.whoAmI);
+                    return;
+                }
 
                 string rewardFormula = args.npc.boss ? config.BossReward : config.NpcReward;
 
@@ -156,7 +173,7 @@ namespace Skynomi
                 }
                 catch
                 {
-                    Skynomi.Utils.Log.Error($"Invalid reward formula: {rewardFormula}");
+                    Utils.Log.Error($"Invalid reward formula: {rewardFormula}");
                     return;
                 }
 
@@ -165,7 +182,7 @@ namespace Skynomi
                 int totalDamage = interaction.DamageByPlayers.Values.Sum();
                 if (totalDamage == 0) return;
 
-                Random random = new Random();
+                Random random = new();
 
                 foreach (var (playerName, playerDamage) in interaction.DamageByPlayers)
                 {
@@ -198,12 +215,12 @@ namespace Skynomi
             }
             catch (Exception ex)
             {
-                Skynomi.Utils.Log.Error(ex.ToString());
+                Utils.Log.Error(ex.ToString());
             }
         }
 
 
-        public void PlayerDead(object sender, GetDataHandlers.KillMeEventArgs args)
+        private void PlayerDead(object sender, GetDataHandlers.KillMeEventArgs args)
         {
             if (args.Player.IsLoggedIn && config.DropOnDeath > 0)
             {
@@ -211,7 +228,7 @@ namespace Skynomi
                 long playerBalance = database.GetBalance(args.Player.Name);
                 var toLose = (long)(playerBalance * (config.DropOnDeath / 100));
                 database.RemoveBalance(args.Player.Name, toLose);
-                args.Player.SendMessage($"You lost {Skynomi.Utils.Util.CurrencyFormat(toLose)} from dying!", Color.Orange);
+                args.Player.SendMessage($"You lost {Utils.Util.CurrencyFormat(toLose)} from dying!", Color.Orange);
                 return;
             }
             else
@@ -231,7 +248,7 @@ namespace Skynomi
 
             var position = player.TPlayer.position;
 
-            if (Skynomi.Utils.Util.GetPlatform(player) == "PC")
+            if (Utils.Util.GetPlatform(player) == "PC")
             {
                 floatingTextCancelToken?.Cancel();
                 floatingTextCancelToken?.Dispose();
@@ -239,9 +256,9 @@ namespace Skynomi
 
                 string message = string.Format("{5}[c/ff9900:[Skynomi][c/ff9900:]]{6}\r\n{0}{1}\r\n{2}\r\n[c/ffff00:Bal:] {3}{4}",
                 "+",
-                Skynomi.Utils.Util.CurrencyFormat(amount).ToString(),
+                Utils.Util.CurrencyFormat(amount).ToString(),
                 $"[c/00ff26:for {from}]" + RepeatEmptySpaces(100),
-                Skynomi.Utils.Util.CurrencyFormat(balance).ToString(),
+                Utils.Util.CurrencyFormat(balance).ToString(),
                 RepeatLineBreaks(69),
                 RepeatLineBreaks(1),
                 RepeatEmptySpaces(100));
@@ -259,7 +276,7 @@ namespace Skynomi
             else
             {
                 position.Y -= 48f;
-                string text = $"+ {Skynomi.Utils.Util.CurrencyFormat(amount)}";
+                string text = $"+ {Utils.Util.CurrencyFormat(amount)}";
                 player.SendData(PacketTypes.CreateCombatTextExtended, text, (int)Color.Blue.PackedValue, position.X, position.Y);
                 return;
             }
@@ -290,7 +307,7 @@ namespace Skynomi
         #endregion
     }
 
-    public class NpcInteraction
+    internal class NpcInteraction
     {
         public HashSet<string> HitPlayers { get; set; } = new HashSet<string>();
         public Dictionary<string, int> DamageByPlayers { get; set; } = new Dictionary<string, int>();

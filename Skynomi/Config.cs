@@ -4,7 +4,6 @@ using TShockAPI;
 namespace Skynomi {
     public class Config
     {
-        [JsonProperty("Currency")]
         public string Currency { get; set; } = "Skyorb";
         [JsonProperty("Currency Format")]
         public string CurrencyFormat { get; set; } = "{currency} {amount}";
@@ -22,6 +21,8 @@ namespace Skynomi {
         public bool RewardFromStatue { get; set; }
         [JsonProperty("Reward From Friendly NPC")]
         public bool RewardFromFriendlyNpc { get; set; }
+        [JsonProperty("Blacklist NPC")]
+        public List<int> BlacklistNpc { get; set; } = new List<int>();
         [JsonProperty("Log Path")]
         public string LogPath { get; set; } = "tshock/Skynomi/logs";
 
