@@ -255,7 +255,8 @@ The rank configuration uses a hierarchical structure where each rank defines its
         "Permission": string,
         "Reward": {
             "itemID": quantity
-        }
+        },
+        "Restricted Items": [number..]
     }
 }
 ```
@@ -345,6 +346,15 @@ The rank configuration uses a hierarchical structure where each rank defines its
 | Format | Key-value pairs where key is item ID and value is quantity |
 | Description | Items and quantities given when rank is obtained |
 
+#### Restricted Items
+
+| Field | Description |
+|-------|-------------|
+| Type | Array of Numbers |
+| Format | Array of item IDs |
+| Description | Items that cannot be used by the rank |
+| Example | [1, 2, 3] |
+
 ## Example Configuration
 
 ```json
@@ -366,7 +376,11 @@ The rank configuration uses a hierarchical structure where each rank defines its
       "Reward": {
         "1": 1,
         "2": 2
-      }
+      },
+      "Restricted Items": [
+        4444,
+        4956
+      ]
     },
     "Rank2": {
       "Prefix": "[i:2751] [c/4B73F6:Traveler] ",
@@ -382,6 +396,9 @@ The rank configuration uses a hierarchical structure where each rank defines its
         "1": 1,
         "2": 2
       },
+      "Restricted Items": [
+        4956
+      ]
     }
   }
 }

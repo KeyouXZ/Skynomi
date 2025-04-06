@@ -1,7 +1,11 @@
+using Skynomi.Database;
 using Skynomi.Utils;
 using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.Hooks;
+using Terraria;
+using Terraria.ID;
+using Terraria.Localization;
 
 namespace Skynomi.RankSystem
 {
@@ -9,7 +13,7 @@ namespace Skynomi.RankSystem
     {
         public string Name => "Rank System";
         public string Description => "Rank system extension for Skynomi";
-        public Version Version => new Version(1, 1, 3);
+        public Version Version => new(1, 2, 0);
         public string Author => "Keyou";
 
         private static Config rankConfig;
@@ -18,7 +22,9 @@ namespace Skynomi.RankSystem
             rankConfig = Config.Read();
             Database.Initialize();
             ServerApi.Hooks.NetGreetPlayer.Register(Loader.GetPlugin(), OnPlayerJoin);
-            
+            ServerApi.Hooks.GameUpdate.Register(Loader.GetPlugin(), OnGameUpdate);
+            GetDataHandlers.PlayerUpdate += OnPlayerUpdate;
+
             Commands.Initialize();
             CreateGroup(1);
         }
@@ -84,6 +90,135 @@ namespace Skynomi.RankSystem
                 TShock.Groups.UpdateGroup(name, parent, permission, chatColor, suffix, prefix);
 
                 counter++;
+            }
+        }
+
+        private DateTime LastTimelyRun = DateTime.UtcNow;
+        private void OnSecondlyUpdate(EventArgs args)
+        {
+            var cache = CacheManager.Cache.GetCache<Database.TRank>("Ranks");
+
+            foreach (TSPlayer player in TShock.Players)
+            {
+                if (player == null || !player.Active)
+                {
+                    continue;
+                }
+
+                player.IsDisabledForBannedWearable = false;
+
+                if (!cache.TryGetValue(player.Name, out var rankIndex)) return;
+                if (rankIndex.Rank == 0 ||rankIndex.Rank > cache.GetAllKeys().Length) return;
+                string rankName = Commands.GetRankByIndex(rankIndex.Rank - 1);
+
+                if (rankConfig.Ranks.TryGetValue(rankName, out var rank))
+                {
+                    if (rank.RestrictedItems.Contains(player.TPlayer.inventory[player.TPlayer.selectedItem].type))
+                    {
+                        string itemName = player.TPlayer.inventory[player.TPlayer.selectedItem].Name;
+                        player.Disable($"holding restricted item: {itemName}");
+                        player.SendErrorMessage($"You can't use {itemName} at your rank ({rankName})!");
+                    }
+
+                    if (!Main.ServerSideCharacter || (Main.ServerSideCharacter && player.IsLoggedIn))
+                    {
+                        foreach (Item item in player.TPlayer.armor)
+                        {
+                            if (rank.RestrictedItems.Contains(item.type))
+                            {
+                                player.SetBuff(BuffID.Frozen, 330, true);
+                                player.SetBuff(BuffID.Stoned, 330, true);
+                                player.SetBuff(BuffID.Webbed, 330, true);
+                                player.IsDisabledForBannedWearable = true;
+
+                                player.SendErrorMessage($"You can't use {item.Name} at your rank ({rankName})!");
+                            }
+                        }
+
+                        // Dye ban checks
+                        foreach (Item item in player.TPlayer.dye)
+                        {
+                            if (rank.RestrictedItems.Contains(item.type))
+                            {
+                                player.SetBuff(BuffID.Frozen, 330, true);
+                                player.SetBuff(BuffID.Stoned, 330, true);
+                                player.SetBuff(BuffID.Webbed, 330, true);
+                                player.IsDisabledForBannedWearable = true;
+
+                                player.SendErrorMessage($"You can't use {item.Name} at your rank ({rankName})!");
+                            }
+                        }
+
+                        // Misc equip ban checks
+                        foreach (Item item in player.TPlayer.miscEquips)
+                        {
+                            if (rank.RestrictedItems.Contains(item.type))
+                            {
+                                player.SetBuff(BuffID.Frozen, 330, true);
+                                player.SetBuff(BuffID.Stoned, 330, true);
+                                player.SetBuff(BuffID.Webbed, 330, true);
+                                player.IsDisabledForBannedWearable = true;
+                                player.SendErrorMessage($"You can't use {item.Name} at your rank ({rankName})!");
+                            }
+                        }
+
+                        // Misc dye ban checks
+                        foreach (Item item in player.TPlayer.miscDyes)
+                        {
+                            if (rank.RestrictedItems.Contains(item.type))
+                            {
+                                player.SetBuff(BuffID.Frozen, 330, true);
+                                player.SetBuff(BuffID.Stoned, 330, true);
+                                player.SetBuff(BuffID.Webbed, 330, true);
+                                player.IsDisabledForBannedWearable = true;
+
+                                player.SendErrorMessage($"You can't use {item.Name} at your rank ({rankName})!");
+                            }
+                        }
+                    }
+                }
+            }
+
+            LastTimelyRun = DateTime.UtcNow;
+        }
+
+        private void OnPlayerUpdate(object sender, GetDataHandlers.PlayerUpdateEventArgs args)
+        {
+            TSPlayer player = args.Player;
+            string itemName = player.TPlayer.inventory[args.SelectedItem].Name;
+
+            var cache = CacheManager.Cache.GetCache<Database.TRank>("Ranks");
+
+            if (!cache.TryGetValue(player.Name, out var rankIndex)) return;
+            if (rankIndex.Rank == 0 || rankIndex.Rank > cache.GetAllKeys().Length) return;
+            string rankName = Commands.GetRankByIndex(rankIndex.Rank - 1);
+
+            if (rankConfig.Ranks.TryGetValue(rankName, out var rank))
+            {
+                if (rank.RestrictedItems.Contains(player.TPlayer.inventory[args.SelectedItem].type))
+                {
+                    player.TPlayer.controlUseItem = false;
+                    player.Disable($"holding restricted item: {itemName}");
+
+                    player.SendErrorMessage($"You can't use {itemName} at your rank ({rankName})!");
+
+                    player.TPlayer.Update(player.TPlayer.whoAmI);
+                    NetMessage.SendData((int)PacketTypes.PlayerUpdate, -1, player.Index, NetworkText.Empty, player.Index);
+
+                    args.Handled = true;
+                    return;
+                }
+            }
+
+            args.Handled = false;
+            return;
+        }
+
+        private void OnGameUpdate(EventArgs args)
+        {
+            if ((DateTime.UtcNow - LastTimelyRun).TotalSeconds >= 1)
+            {
+                OnSecondlyUpdate(args);
             }
         }
     }

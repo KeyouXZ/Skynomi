@@ -333,6 +333,9 @@ See [Config Document](./Config.md) for this
 - Skynomi: `v3.1.1` -> `v3.2.0`
   - Config: `"Blacklist NPC"` from reward system
   - Fix `Reward From Friendly NPC` not working
+- Rank System: `v1.1.3` -> `v1.2.0`
+  - New feature: Item restriction for rank system. Config: `"Restricted Items"`
+
 
 ## License
 

@@ -85,7 +85,7 @@ namespace Skynomi.RankSystem
             public string Suffix = string.Empty;
 
             [JsonProperty("Chat Color")]
-            public int[] ChatColor = new int[]{};
+            public int[] ChatColor = Array.Empty<int>();
 
             [JsonProperty("Cost")]
             public int Cost;
@@ -94,7 +94,9 @@ namespace Skynomi.RankSystem
             public string Permission = string.Empty;
 
             [JsonProperty("Reward")]
-            public Dictionary<string, int> Rewards = new Dictionary<string, int>();
+            public Dictionary<string, int> Rewards = new();
+            [JsonProperty("Restricted Items")]
+            public List<int> RestrictedItems = new();
         }
     }
 }
