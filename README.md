@@ -155,6 +155,10 @@ This command will show a list of all items that can be bought, along with their 
 
 ### Rank System Extension
 
+#### `/rank <command>`
+
+**Description**: Displays rank commands.
+
 #### `/rank up`
 
 **Description**: Rank up to the next level
@@ -172,6 +176,10 @@ This command will show a list of all items that can be bought, along with their 
 #### `/rankutils list`
 
 **Description**: List all available ranks
+
+#### `/rankutils <command>`
+
+**Description**: Displays rankutils commands
 
 **Usage**:
 `/rankutils list`
@@ -211,10 +219,12 @@ Set up the following permissions to control access to the plugin features:
 | `/shop list`       | `skynomi.shop.list`       |
 | `/shop buy`        | `skynomi.shop.buy`        |
 | `/shop sell`       | `skynomi.shop.sell`       |
+| `/rank`            | `skynomi.rank`            |
 | `/rank up`         | `skynomi.rank.up`         |
 | `/rank down`       | `skynomi.rank.down`       |
-| `/rankutils list`  | `skynomi.rank.list`       |
-| `/rankutils info`  | `skynomi.rank.info`       |
+| `/rankutils`       | `skynomi.rankutils`       |
+| `/rankutils list`  | `skynomi.rankutils.list`  |
+| `/rankutils info`  | `skynomi.rankutils.info`  |
 
 ---
 
@@ -335,7 +345,7 @@ See [Config Document](./Config.md) for this
   - Fix `Reward From Friendly NPC` not working
 - Rank System: `v1.1.3` -> `v1.2.0`
   - New feature: Item restriction for rank system. Config: `"Restricted Items"`
-
+  - Corrected rankutils permission
 
 ## License
 

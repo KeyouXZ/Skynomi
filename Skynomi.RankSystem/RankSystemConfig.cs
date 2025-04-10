@@ -5,8 +5,9 @@ namespace Skynomi.RankSystem
         public static readonly string Rank = "skynomi.rank";
         public static readonly string RankUp = "skynomi.rank.up";
         public static readonly string RankDown = "skynomi.rank.down";
-        public static readonly string RankList = "skynomi.rank.list";
-        public static readonly string RankInfo = "skynomi.rank.info";
+        public static readonly string RankUtils = "skynomi.rankutils";
+        public static readonly string RankList = "skynomi.rankutils.list";
+        public static readonly string RankInfo = "skynomi.rankutils.info";
     }
 
     public abstract class Messages

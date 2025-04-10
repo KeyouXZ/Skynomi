@@ -20,7 +20,7 @@ namespace Skynomi.RankSystem
                 HelpText = "Rank commands:\nup - Rank up to the next level\ndown - Rank down to the previous level"
             });
 
-            TShockAPI.Commands.ChatCommands.Add(new Command(Permissions.RankList, RankUtils, "rankutils")
+            TShockAPI.Commands.ChatCommands.Add(new Command(Permissions.RankUtils, RankUtils, "rankutils")
             {
                 AllowServer = true,
                 HelpText = "Rank Utils commands:\ninfo <rank> - Get information about a rank\nlist - List all available ranks"
