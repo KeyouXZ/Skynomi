@@ -6,6 +6,8 @@ using TShockAPI.Hooks;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
+using Microsoft.Xna.Framework;
+using System.Text.RegularExpressions;
 
 namespace Skynomi.RankSystem
 {
@@ -46,6 +48,43 @@ namespace Skynomi.RankSystem
         private void OnPlayerJoin(GreetPlayerEventArgs args)
         {
             Database.CreatePlayer(TShock.Players[args.Who].Name);
+            var cache = CacheManager.Cache.GetCache<Database.TRank>("Ranks");
+            var ranks = rankConfig.Ranks;
+            var player = TShock.Players[args.Who];
+
+            if (player.Account == null)
+                return;
+
+            if (!cache.TryGetValue(player.Name, out var plrRank)) return;
+            var playerGroup = player.Account.Group;
+            var regex = new Regex(@"rank_(\d+)");
+            var match = regex.Match(playerGroup);
+
+            if (match.Success)
+            {
+                // Set to max rank in the configuration
+                if (ranks.Count < plrRank.Rank)
+                {
+                    TShock.UserAccounts.SetUserGroup(player.Account, "rank_" + ranks.Count);
+                    cache.Modify(player.Name, e =>
+                    {
+                        e.Rank = ranks.Count;
+                        return e;
+                    });
+
+                    player.SendMessage($"Your rank has been set to {Commands.GetRankByIndex(ranks.Count - 1)}!", Color.Orange);
+                    return;
+                }
+
+                if (int.TryParse(match.Groups[1].Value, out int currentRank))
+                {
+                    if (plrRank.Rank != currentRank)
+                    {
+                        TShock.UserAccounts.SetUserGroup(player.Account, "rank_" + plrRank.Rank);
+                        player.SendMessage($"Your rank has been corrected to {Commands.GetRankByIndex(plrRank.Rank - 1)}.", Color.Orange);
+                    }
+                }
+            }
         }
 
         private static void CreateGroup(int status)
@@ -105,10 +144,11 @@ namespace Skynomi.RankSystem
                     continue;
                 }
 
+                #region Restricted Items
                 player.IsDisabledForBannedWearable = false;
 
                 if (!cache.TryGetValue(player.Name, out var rankIndex)) return;
-                if (rankIndex.Rank == 0 ||rankIndex.Rank > cache.GetAllKeys().Length) return;
+                if (rankIndex.Rank == 0 || rankIndex.Rank > cache.GetAllKeys().Length) return;
                 string rankName = Commands.GetRankByIndex(rankIndex.Rank - 1);
 
                 if (rankConfig.Ranks.TryGetValue(rankName, out var rank))
@@ -177,6 +217,7 @@ namespace Skynomi.RankSystem
                         }
                     }
                 }
+                #endregion
             }
 
             LastTimelyRun = DateTime.UtcNow;

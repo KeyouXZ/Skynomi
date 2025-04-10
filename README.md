@@ -201,6 +201,38 @@ This command will show a list of all items that can be bought, along with their 
 
 This command will display the details of the rank named "Master".
 
+### `/resetrank`
+
+**Description**: Resets rank to the lowest level
+
+**Usage**:
+`/resetrank <player/all>`
+
+- `<player/all>`: The name of the player you want to reset their rank or "all".
+
+**Example:**
+
+```cmd
+/resetrank Keyou
+/resetrank all
+```
+
+### `/resethighestrank`
+
+**Description**: Resets rank to the lowest level
+
+**Usage**:
+`/resethighestrank <player/all>`
+
+- `<player/all>`: The name of the player you want to reset their rank or "all".
+
+**Example:**
+
+```cmd
+/resethighestrank Keyou
+/resethighestrank all
+```
+
 ---
 
 ## Permissions
@@ -225,6 +257,8 @@ Set up the following permissions to control access to the plugin features:
 | `/rankutils`       | `skynomi.rankutils`       |
 | `/rankutils list`  | `skynomi.rankutils.list`  |
 | `/rankutils info`  | `skynomi.rankutils.info`  |
+| `/resetrank`       | `skynomi.resetrank`       |
+| `/resethighestrank`| `skynomi.resethighestrank`|
 
 ---
 
@@ -346,6 +380,8 @@ See [Config Document](./Config.md) for this
 - Rank System: `v1.1.3` -> `v1.2.0`
   - New feature: Item restriction for rank system. Config: `"Restricted Items"`
   - Corrected rankutils permission
+  - New command: `resetrank` and `resethighestrank`
+  - New Feature: Syncs player group with stored rank, caps rank at max if exceeded, updates cache, and notifies the player.
 
 ## License
 

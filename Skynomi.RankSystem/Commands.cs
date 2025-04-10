@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Skynomi.Database;
 using TShockAPI;
 
 namespace Skynomi.RankSystem
@@ -24,6 +25,18 @@ namespace Skynomi.RankSystem
             {
                 AllowServer = true,
                 HelpText = "Rank Utils commands:\ninfo <rank> - Get information about a rank\nlist - List all available ranks"
+            });
+
+            TShockAPI.Commands.ChatCommands.Add(new Command(Permissions.ResetRank, ResetRank, "resetrank")
+            {
+                AllowServer = true,
+                HelpText = "Reset the rank of all players"
+            });
+
+            TShockAPI.Commands.ChatCommands.Add(new Command(Permissions.ResetRank, ResetHighestRank, "resethighestrank")
+            {
+                AllowServer = true,
+                HelpText = "Reset the highest rank of all players"
             });
         }
 
@@ -51,7 +64,7 @@ namespace Skynomi.RankSystem
 
                     // rank index start at 1
                     int rank = rankDatabase.GetRank(args.Player.Name);
-                    
+
                     Skynomi.Database.CacheManager.CacheEntry<Database.TRank> rankCache = Skynomi.Database.CacheManager.Cache.GetCache<Database.TRank>("Ranks");
 
                     // nextindex start at 0
@@ -81,7 +94,8 @@ namespace Skynomi.RankSystem
                         }
 
                         // Set the Highest Level
-                        rankCache.Modify(args.Player.Name, e => {
+                        rankCache.Modify(args.Player.Name, e =>
+                        {
                             e.Rank = rank + 1;
                             e.HighestRank = (rank + 1) > highestRank ? rank + 1 : highestRank;
                             return e;
@@ -113,7 +127,7 @@ namespace Skynomi.RankSystem
                         args.Player.SendErrorMessage("Rank down is disabled.");
                         return;
                     }
-                    
+
                     // start at 1
                     int rank = rankDatabase.GetRank(args.Player.Name);
 
@@ -126,7 +140,8 @@ namespace Skynomi.RankSystem
                         int rankCost = rankConfig.Ranks[GetRankByIndex(nextIndex)].Cost;
 
                         database.AddBalance(args.Player.Name, rankCost);
-                        Skynomi.Database.CacheManager.Cache.GetCache<Database.TRank>("Ranks").Modify(args.Player.Name, e => {
+                        Skynomi.Database.CacheManager.Cache.GetCache<Database.TRank>("Ranks").Modify(args.Player.Name, e =>
+                        {
                             e.Rank = rank - 1;
                             return e;
                         });
@@ -220,6 +235,129 @@ namespace Skynomi.RankSystem
                 else
                 {
                     args.Player.SendErrorMessage(usage);
+                }
+            }
+            catch (Exception ex)
+            {
+                Utils.Log.Error(ex.ToString());
+            }
+        }
+
+        private static void ResetRank(CommandArgs args)
+        {
+            try
+            {
+                string usage = "Usage: /resetrank <player/all>";
+
+                if (args.Parameters.Count < 1)
+                {
+                    args.Player.SendErrorMessage(usage);
+                    return;
+                }
+
+                string who = args.Parameters[0];
+
+                var cache = CacheManager.Cache.GetCache<Database.TRank>("Ranks");
+                if (who == "all")
+                {
+                    foreach (var rank in cache.GetAllKeys())
+                    {
+                        cache.Modify(rank, e =>
+                        {
+                            if (e.Rank > 1)
+                                e.Rank = 1;
+                            return e;
+                        });
+
+                        var plr = TSPlayer.FindByNameOrID(rank).FirstOrDefault(x => x != null && x.Name.Equals(rank, StringComparison.OrdinalIgnoreCase));
+                        if (plr != null && cache.GetValue(rank).Rank > 1)
+                        {
+                            TShock.UserAccounts.SetUserGroup(plr.Account, TShock.Config.Settings.DefaultRegistrationGroupName);
+                        }
+                    }
+                    args.Player.SendSuccessMessage("All players rank has been reset.");
+                    return;
+                }
+                
+                var player = TSPlayer.FindByNameOrID(who).FirstOrDefault(x => x != null && x.Name.Equals(who, StringComparison.OrdinalIgnoreCase));
+                if (player != null)
+                {
+                    if (cache.GetValue(player.Name).Rank <= 1)
+                    {
+                        args.Player.SendErrorMessage($"{who} is already at the lowest rank.");
+                        return;
+                    }
+
+                    cache.Modify(who, e =>
+                    {
+                        if (e.Rank > 1)
+                            e.Rank = 1;
+                        return e;
+                    });
+
+                    if (player!.Account != null)
+                        TShock.UserAccounts.SetUserGroup(player.Account, TShock.Config.Settings.DefaultRegistrationGroupName);
+                    args.Player.SendSuccessMessage($"Rank of {who} has been reset.");
+                }
+                else
+                {
+                    args.Player.SendErrorMessage($"{who} not found.");
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Utils.Log.Error(ex.ToString());
+            }
+        }
+
+        private static void ResetHighestRank(CommandArgs args)
+        {
+            try
+            {
+                string usage = "Usage: /resethighestrank <player/all>";
+
+                if (args.Parameters.Count < 1)
+                {
+                    args.Player.SendErrorMessage(usage);
+                    return;
+                }
+
+                string who = args.Parameters[0];
+
+                var cache = CacheManager.Cache.GetCache<Database.TRank>("Ranks");
+                if (who == "all")
+                {
+                    foreach (var rank in cache.GetAllKeys())
+                    {
+                        cache.Modify(rank, e =>
+                        {
+                            e.HighestRank = 0;
+                            return e;
+                        });
+                    }
+                    args.Player.SendSuccessMessage("Highest rank has been reset.");
+                }
+                else
+                {
+                    bool userExists = TSPlayer.FindByNameOrID(who)
+                        .Any(x => x != null &&
+                            (x.Name.Equals(who, StringComparison.OrdinalIgnoreCase) ||
+                            (int.TryParse(who, out int id) && x.Index == id)));
+
+                    if (userExists)
+                    {
+                        cache.Modify(who, e =>
+                        {
+                            e.HighestRank = 0;
+                            return e;
+                        });
+                        args.Player.SendSuccessMessage($"Highest rank of {who} has been reset.");
+                    }
+                    else
+                    {
+                        args.Player.SendErrorMessage($"{who} not found.");
+                    }
                 }
             }
             catch (Exception ex)

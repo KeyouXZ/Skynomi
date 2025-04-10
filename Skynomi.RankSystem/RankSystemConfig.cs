@@ -8,6 +8,8 @@ namespace Skynomi.RankSystem
         public static readonly string RankUtils = "skynomi.rankutils";
         public static readonly string RankList = "skynomi.rankutils.list";
         public static readonly string RankInfo = "skynomi.rankutils.info";
+        public static readonly string ResetRank = "skynomi.rank.resetrank";
+        public static readonly string ResetHighestRank = "skynomi.rank.resethighestrank";
     }
 
     public abstract class Messages
