@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 using Skynomi.Database;
 using TShockAPI;
@@ -58,12 +59,17 @@ namespace Skynomi.RankSystem
                     return;
                 }
 
+                // TODO: Fix rank index if default registration group is not default
                 if (args.Parameters[0] == "up")
                 {
                     if (!Utils.Util.CheckPermission(Permissions.RankUp, args)) return;
 
                     // rank index start at 1
-                    int rank = rankDatabase.GetRank(args.Player.Name);
+                    var player = TShock.Players.FirstOrDefault(x => x.Name.Equals(args.Player.Name, StringComparison.OrdinalIgnoreCase));
+                    var regex = new Regex(@"rank_(\d+)");
+                    var match = regex.Match(player!.Account.Group);
+
+                    int rank = match.Success ? int.Parse(match.Groups[1].Value) : 0;
 
                     Skynomi.Database.CacheManager.CacheEntry<Database.TRank> rankCache = Skynomi.Database.CacheManager.Cache.GetCache<Database.TRank>("Ranks");
 

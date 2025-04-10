@@ -80,8 +80,36 @@ namespace Skynomi.RankSystem
                 {
                     if (plrRank.Rank != currentRank)
                     {
-                        TShock.UserAccounts.SetUserGroup(player.Account, "rank_" + plrRank.Rank);
-                        player.SendMessage($"Your rank has been corrected to {Commands.GetRankByIndex(plrRank.Rank - 1)}.", Color.Orange);
+                        string corrected;
+                        string message;
+
+                        if (plrRank.Rank == 0)
+                        {
+                            corrected = TShock.Config.Settings.DefaultRegistrationGroupName;
+                            var match2 = regex.Match(corrected);
+                            if (match2.Success && int.TryParse(match2.Groups[1].Value, out int defaultRank))
+                            {
+                                cache.Modify(player.Name, e =>
+                                {
+                                    e.Rank = defaultRank;
+                                    return e;
+                                });
+                                
+                                message = $"Your rank has been corrected to {Commands.GetRankByIndex(plrRank.Rank - 1)}.";
+                            }
+                            else
+                            {
+                                message = "Your rank has been corrected to the default registration rank.";
+                            }
+                        }
+                        else
+                        {
+                            corrected = "rank_" + (plrRank.Rank - 1);
+                            message = $"Your rank has been corrected to {Commands.GetRankByIndex(plrRank.Rank - 1)}.";
+                        }
+
+                        TShock.UserAccounts.SetUserGroup(player.Account, corrected);
+                        player.SendMessage(message, Color.Orange);
                     }
                 }
             }
