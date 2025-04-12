@@ -98,6 +98,22 @@ This will send 500 units of virtual currency to the player named "Keyou".
 
 - `help`: Display help for Skynomi commands.
 
+#### `/leaderboard`
+
+**Description**: Shows a leaderboard of the richest players.
+
+**Usage**:
+`/leaderboard [top]`
+
+- `[top]`: The number of players to show in the leaderboard (optional, defaults to 5 if not specified. Max 10).
+
+**Example:**
+
+```cmd
+/leaderboard
+/leaderboard 10
+```
+
 ---
 
 ### Shop Extension
@@ -247,6 +263,7 @@ Set up the following permissions to control access to the plugin features:
 | `/admin setbal`    | `skynomi.admin.balance`   |
 | `/listextension`   | `skynomi.listextension`   |
 | `/skynomi`         | `skynomi.skynomi`         |
+| `/leaderboard`     | `skynomi.leaderboard`     |
 | `/shop`            | `skynomi.shop`            |
 | `/shop list`       | `skynomi.shop.list`       |
 | `/shop buy`        | `skynomi.shop.buy`        |
@@ -377,6 +394,7 @@ See [Config Document](./Config.md) for this
 - Skynomi: `v3.1.1` -> `v3.2.0`
   - Config: `"Blacklist NPC"` from reward system
   - Fix `Reward From Friendly NPC` not working
+  - New command: `leaderboard`
 - Rank System: `v1.1.3` -> `v1.2.0`
   - New feature: Item restriction for rank system. Config: `"Restricted Items"`
   - Corrected rankutils permission

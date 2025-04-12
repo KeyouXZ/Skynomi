@@ -43,8 +43,8 @@ namespace Skynomi.Utils
             string formattedAmount = _config.AbbsreviasiNumeric ? FormatNumber(amount) : amount.ToString();
             return _config.CurrencyFormat.Replace("{currency}", _config.Currency).Replace("{amount}", formattedAmount);
         }
-        
-       private static string FormatNumber(long num)
+
+        public static string FormatNumber(long num)
         {
             if (num >= 1_000_000_000)
                 return (num / 1_000_000_000D).ToString("0.#") + "B";

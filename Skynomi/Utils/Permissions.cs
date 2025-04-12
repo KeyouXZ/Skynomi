@@ -2,14 +2,16 @@
 {
     public static class Permissions
     {
-        public static readonly string Balance = "skynomi.balance";
-        public static readonly string Pay = "skynomi.pay";
+        public const string Balance = "skynomi.balance";
+        public const string Pay = "skynomi.pay";
 
-        public static readonly string Admin = "skynomi.admin";
-        public static readonly string AdminBalance = "skynomi.admin.balance";
+        public const string Admin = "skynomi.admin";
+        public const string AdminBalance = "skynomi.admin.balance";
 
-        public static readonly string ListExtension = "skynomi.listextension";
+        public const string ListExtension = "skynomi.listextension";
 
-        public static readonly string Skynomi = "skynomi.skynomi";
+        public const string Skynomi = "skynomi.skynomi";
+
+        public const string Leaderboard = "skynomi.leaderboard";
     }
 }

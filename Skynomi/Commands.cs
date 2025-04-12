@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using Microsoft.Xna.Framework;
+using Skynomi.Database;
 using TShockAPI;
 
 namespace Skynomi
@@ -30,6 +32,11 @@ namespace Skynomi
             {
                 AllowServer = true,
                 HelpText = "Use /skynomi help to display all commands."
+            });
+            TShockAPI.Commands.ChatCommands.Add(new Command(Utils.Permissions.Leaderboard, Leaderboard, "leaderboard", "lb")
+            {
+                AllowServer = true,
+                HelpText = "Displays the server's currency leaderboard."
             });
         }
 
@@ -186,7 +193,7 @@ namespace Skynomi
                     args.Player.SendErrorMessage($"Player '{targetUsername}' not found.");
                     return;
                 }
-                
+
 
                 if (!int.TryParse(args.Parameters[2], out int amount))
                 {
@@ -371,6 +378,53 @@ namespace Skynomi
             {
                 args.Player.SendErrorMessage("Usage: /skynomi <command>");
             }
+        }
+
+        private static void Leaderboard(CommandArgs args)
+        {
+            int max = 10;
+            if (args.Parameters.Count > 0 && int.TryParse(args.Parameters[0], out int top))
+            {
+                if (top > max)
+                {
+                    args.Player.SendErrorMessage($"Max top is {max}");
+                    return;
+                }
+                else
+                {
+                    max = top;
+                }
+            }
+
+            var cache = CacheManager.Cache.GetCache<long>("Balance");
+            StringBuilder leaderboard = new StringBuilder();
+            var allKeys = cache.GetAllKeys();
+            int topCount = Math.Min(allKeys.Length, args.Parameters.Count > 0 ? max : 5);
+
+            string title = $"Top {topCount} Leaderboard";
+            leaderboard.AppendLine(title);
+
+            int counter = 1;
+            foreach (var bal in allKeys.OrderByDescending(x => cache.GetValue(x)).Take(topCount))
+            {
+                string rankSymbol = counter switch
+                {
+                    1 => $"[c/FFD700:1. {bal}]",
+                    2 => $"[c/C0C0C0:2. {bal}]",
+                    3 => $"[c/CD7F32:3. {bal}]",
+                    _ => $"[c/FFFFFF:{counter}. {bal}]"
+                };
+
+                string msg = $"{rankSymbol} - [c/808080:{Utils.Util.FormatNumber(cache.GetValue(bal))}]";
+
+                if (counter == topCount)
+                    leaderboard.Append(msg);
+                else
+                    leaderboard.AppendLine(msg);
+                counter++;
+            }
+
+            args.Player.SendMessage(leaderboard.ToString(), Color.White);
         }
     }
 }
