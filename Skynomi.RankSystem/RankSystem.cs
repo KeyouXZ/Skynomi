@@ -56,9 +56,9 @@ namespace Skynomi.RankSystem
                 return;
 
             if (!cache.TryGetValue(player.Name, out var plrRank)) return;
-            var playerGroup = player.Account.Group;
+            var playerGroup = player.Group;
             var regex = new Regex(@"rank_(\d+)");
-            var match = regex.Match(playerGroup);
+            var match = regex.Match(playerGroup.Name);
 
             if (match.Success)
             {

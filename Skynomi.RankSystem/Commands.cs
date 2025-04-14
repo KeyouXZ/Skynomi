@@ -59,15 +59,14 @@ namespace Skynomi.RankSystem
                     return;
                 }
 
-                // TODO: Fix rank index if default registration group is not default
                 if (args.Parameters[0] == "up")
                 {
                     if (!Utils.Util.CheckPermission(Permissions.RankUp, args)) return;
 
                     // rank index start at 1
-                    var player = TShock.Players.FirstOrDefault(x => x.Name.Equals(args.Player.Name, StringComparison.OrdinalIgnoreCase));
+                    var player = args.Player;
                     var regex = new Regex(@"rank_(\d+)");
-                    var match = regex.Match(player!.Account.Group);
+                    var match = regex.Match(player!.Group.Name);
 
                     int rank = match.Success ? int.Parse(match.Groups[1].Value) : 0;
 
@@ -88,6 +87,7 @@ namespace Skynomi.RankSystem
                             args.Player.SendErrorMessage($"Your balance is not enough to level up. ({Utils.Util.CurrencyFormat((int)(rankCost - balance))} more)");
                             return;
                         }
+
                         // Give Player Rewards
                         int highestRank = rankCache.GetValue(args.Player.Name).HighestRank;
 
@@ -135,7 +135,11 @@ namespace Skynomi.RankSystem
                     }
 
                     // start at 1
-                    int rank = rankDatabase.GetRank(args.Player.Name);
+                    var player = args.Player;
+                    var regex = new Regex(@"rank_(\d+)");
+                    var match = regex.Match(player!.Group.Name);
+
+                    int rank = match.Success ? int.Parse(match.Groups[1].Value) : 0;
 
                     // start at 0
                     int nextIndex = (rank - 2);
