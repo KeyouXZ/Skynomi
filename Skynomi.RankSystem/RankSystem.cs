@@ -1,13 +1,13 @@
+using System.Text.RegularExpressions;
+using Microsoft.Xna.Framework;
 using Skynomi.Database;
 using Skynomi.Utils;
-using TerrariaApi.Server;
-using TShockAPI;
-using TShockAPI.Hooks;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
-using Microsoft.Xna.Framework;
-using System.Text.RegularExpressions;
+using TerrariaApi.Server;
+using TShockAPI;
+using TShockAPI.Hooks;
 
 namespace Skynomi.RankSystem
 {
@@ -94,7 +94,7 @@ namespace Skynomi.RankSystem
                                     e.Rank = defaultRank;
                                     return e;
                                 });
-                                
+
                                 message = $"Your rank has been corrected to {Commands.GetRankByIndex(plrRank.Rank - 1)}.";
                             }
                             else
@@ -129,12 +129,19 @@ namespace Skynomi.RankSystem
                 string name = "rank_" + counter;
                 string prefix = key.Value.Prefix;
                 string suffix = key.Value.Suffix;
-                string parent = (counter == 1) ? "default" : "rank_" + (counter - 1);
+                string parent = (counter == 1) ? TShock.Config.Settings.DefaultRegistrationGroupName : "rank_" + (counter - 1);
                 if (!rankConfig.useParent) parent = "";
 
                 int[] color = key.Value.ChatColor;
+                if (color == null || color.Length != 3)
+                {
+                    Log.Warn($"Rank '{name}' has invalid chat color. Defaulting to white.");
+                    color = new[] { 255, 255, 255 };
+                }
                 string chatColor = $"{color[0]},{color[1]},{color[2]}";
-                string permission = parent == "" ? key.Value.Permission.Replace(" ", ",") : TShock.Groups.GetGroupByName(parent).Permissions + "," + key.Value.Permission.Replace(" ", ",");
+                string permission = parent == ""
+                    ? key.Value.Permission.Replace(" ", ",")
+                    : TShock.Groups.GetGroupByName(parent).Permissions + "," + key.Value.Permission.Replace(" ", ",");
 
                 // Create the group
                 if (status == 1)

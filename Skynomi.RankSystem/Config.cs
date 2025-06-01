@@ -95,6 +95,7 @@ namespace Skynomi.RankSystem
 
             [JsonProperty("Reward")]
             public Dictionary<string, int> Rewards = new();
+
             [JsonProperty("Restricted Items")]
             public List<int> RestrictedItems = new();
         }
