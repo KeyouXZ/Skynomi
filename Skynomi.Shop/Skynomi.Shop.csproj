@@ -1,25 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <ProjectReference Include="..\Skynomi\Skynomi.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Skynomi\Skynomi.csproj" />
+	</ItemGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
 
-  <PropertyGroup>
+	<PropertyGroup>
 		<Version>1.2.0</Version>
 		<FileVersion>1.2.0.0</FileVersion>
 		<AssemblyVersion>1.2.0.0</AssemblyVersion>
 		<InformationalVersion>1.2.0</InformationalVersion>
 	</PropertyGroup>
 
-  <ItemGroup>
-		<PackageReference Include="TShock" Version="5.2.3" />
+	<ItemGroup>
+		<PackageReference Include="TShock" Version="5.2.4" />
 	</ItemGroup>
-
 </Project>
