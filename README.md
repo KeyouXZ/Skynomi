@@ -189,30 +189,26 @@ This command will show a list of all items that can be bought, along with their 
 **Usage**:
 `/rank down`
 
-#### `/rankutils list`
+#### `/rank list`
 
 **Description**: List all available ranks
 
-#### `/rankutils <command>`
-
-**Description**: Displays rankutils commands
-
 **Usage**:
-`/rankutils list`
+`/rank list`
 
-### `/rankutils info`
+### `/rank info`
 
 **Description**: Displays rank details
 
 **Usage**:
-`/rankutils info <rank>`
+`/rank info <rank name>`
 
-- `<rank>`: The name of the rank you want to view
+- `<rank name>`: The name of the rank you want to view
 
 **Example:**
 
 ```cmd
-/rankutils info Master
+/rank info Master
 ```
 
 This command will display the details of the rank named "Master".
@@ -271,9 +267,8 @@ Set up the following permissions to control access to the plugin features:
 | `/rank`            | `skynomi.rank`            |
 | `/rank up`         | `skynomi.rank.up`         |
 | `/rank down`       | `skynomi.rank.down`       |
-| `/rankutils`       | `skynomi.rankutils`       |
-| `/rankutils list`  | `skynomi.rankutils.list`  |
-| `/rankutils info`  | `skynomi.rankutils.info`  |
+| `/rank list`       | `skynomi.rank.list`       |
+| `/rank info`       | `skynomi.rank.info`       |
 | `/resetrank`       | `skynomi.resetrank`       |
 | `/resethighestrank`| `skynomi.resethighestrank`|
 
@@ -340,7 +335,7 @@ See [Config Document](./Config.md) for this
 - Rank System: `v1.0.0` -> `v1.1.0`
   - Added `Announce Rank Up` configuration
   - Added `Enable Rank Down` configuration
-  - Added `rankutils info` & `rankutils list` commands
+  - Added `rank info` & `rank list` commands
 
 **Version 2.1.0**
 
@@ -397,9 +392,17 @@ See [Config Document](./Config.md) for this
   - New command: `leaderboard`
 - Rank System: `v1.1.3` -> `v1.2.0`
   - New feature: Item restriction for rank system. Config: `"Restricted Items"`
-  - Corrected rankutils permission
+  - Corrected rank permission
   - New command: `resetrank` and `resethighestrank`
   - New Feature: Syncs player group with stored rank, caps rank at max if exceeded, updates cache, and notifies the player.
+
+**Version 3.2.1**
+
+- Rank System: `v1.2.0` -> `v1.3.0`
+  - Renamed `rankutils` command to `rank` for clarity and consistency
+  - Restricted `rank up/down` commands to players in the `rank` group only
+  - Changed config `Cost` type from `int` to `long` to support larger values
+  - Miscellaneous logic fixes and improvements
 
 ## License
 

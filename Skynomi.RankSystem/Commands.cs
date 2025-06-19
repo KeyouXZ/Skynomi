@@ -18,14 +18,8 @@ namespace Skynomi.RankSystem
             // Init Commands
             TShockAPI.Commands.ChatCommands.Add(new Command(Permissions.Rank, Rank, "rank", "level")
             {
-                AllowServer = false,
-                HelpText = "Rank commands:\nup - Rank up to the next level\ndown - Rank down to the previous level"
-            });
-
-            TShockAPI.Commands.ChatCommands.Add(new Command(Permissions.RankUtils, RankUtils, "rankutils")
-            {
                 AllowServer = true,
-                HelpText = "Rank Utils commands:\ninfo <rank> - Get information about a rank\nlist - List all available ranks"
+                HelpText = "Rank commands:\nup - Rank up to the next level\ndown - Rank down to the previous level\ninfo <rank name> - Get information about a rank\nlist - List all available ranks"
             });
 
             TShockAPI.Commands.ChatCommands.Add(new Command(Permissions.ResetRank, ResetRank, "resetrank")
@@ -51,11 +45,18 @@ namespace Skynomi.RankSystem
         {
             try
             {
-                string usage = "Usage: /rank <up/down>";
+                string usage = "Usage: /rank <up/down/info/list>";
 
                 if (args.Parameters.Count == 0)
                 {
                     args.Player.SendErrorMessage(usage);
+                    return;
+                }
+
+                // Check if the player is from rank group
+                if ((args.Parameters[0] == "up" || args.Parameters[0] == "down") && !args.Player.Group.Name.StartsWith("rank_") && args.Player.Group.Name != TShock.Config.Settings.DefaultRegistrationGroupName)
+                {
+                    args.Player.SendErrorMessage("You are not in a rank group.");
                     return;
                 }
 
@@ -80,7 +81,7 @@ namespace Skynomi.RankSystem
 
                         // Check user balance
                         long balance = database.GetBalance(args.Player.Name);
-                        int rankCost = rankConfig.Ranks[nextRank].Cost;
+                        long rankCost = rankConfig.Ranks[nextRank].Cost;
 
                         if (balance < rankCost)
                         {
@@ -147,7 +148,7 @@ namespace Skynomi.RankSystem
                     {
                         string nextRank = GetRankByIndex(nextIndex);
 
-                        int rankCost = rankConfig.Ranks[GetRankByIndex(nextIndex)].Cost;
+                        long rankCost = rankConfig.Ranks[GetRankByIndex(nextIndex)].Cost;
 
                         database.AddBalance(args.Player.Name, rankCost);
                         Skynomi.Database.CacheManager.Cache.GetCache<Database.TRank>("Ranks").Modify(args.Player.Name, e =>
@@ -163,33 +164,10 @@ namespace Skynomi.RankSystem
                         args.Player.SendErrorMessage("You are already at the lowest rank.");
                     }
                 }
-                else
-                {
-                    args.Player.SendErrorMessage(usage);
-                }
-            }
-            catch (Exception ex)
-            {
-                Utils.Log.Error(ex.ToString());
-            }
-
-        }
-
-        private static void RankUtils(CommandArgs args)
-        {
-            try
-            {
-                string usage = "Usage: /rankutils <info/list>";
-                if (args.Parameters.Count == 0)
-                {
-                    args.Player.SendErrorMessage(usage);
-                    return;
-                }
-
-                if (args.Parameters[0] == "info")
+                else if (args.Parameters[0] == "info")
                 {
                     if (!Utils.Util.CheckPermission(Permissions.RankInfo, args)) return;
-                    string infoUsage = "Usage: /rankutils info <rank>";
+                    string infoUsage = "Usage: /rank info <rank name>";
 
                     if (args.Parameters.Count < 2)
                     {
@@ -201,16 +179,42 @@ namespace Skynomi.RankSystem
                     if (rankConfig.Ranks.ContainsKey(rank))
                     {
                         string rankPrefix = rankConfig.Ranks[rank].Prefix;
-                        string rankSuffix = rankConfig.Ranks[rank].Suffix;
-                        int[] ChatColor = rankConfig.Ranks[rank].ChatColor;
-                        string hex = $"{ChatColor[0]:X2}{ChatColor[1]:X2}{ChatColor[2]:X2}";
-                        string formattedColor = $"[c/{hex}:Hello]";
-                        int rankCost = rankConfig.Ranks[rank].Cost;
-                        string rankPermission = rankConfig.Ranks[rank].Permission;
-                        string rankReward = "";
-                        foreach (var item in rankConfig.Ranks[rank].Rewards)
+                        if (string.IsNullOrEmpty(rankPrefix))
                         {
-                            rankReward += $"[i/s{item.Value}:{item.Key}] ";
+                            rankPrefix = "-";
+                        }
+
+                        string rankSuffix = rankConfig.Ranks[rank].Suffix;
+                        if (string.IsNullOrEmpty(rankSuffix))
+                        {
+                            rankSuffix = "-";
+                        }
+
+                        int[] ChatColor = rankConfig.Ranks[rank].ChatColor;
+
+                        string hex = $"{ChatColor[0]:X2}{ChatColor[1]:X2}{ChatColor[2]:X2}";
+
+                        string formattedColor = $"[c/{hex}:Hello]";
+
+                        long rankCost = rankConfig.Ranks[rank].Cost;
+
+                        string rankPermission = rankConfig.Ranks[rank].Permission;
+                        if (string.IsNullOrEmpty(rankPermission))
+                        {
+                            rankPermission = "-";
+                        }
+
+                        string rankReward = "";
+                        if (rankConfig.Ranks[rank].Rewards.Count == 0)
+                        {
+                            rankReward = "-";
+                        }
+                        else
+                        {
+                            foreach (var item in rankConfig.Ranks[rank].Rewards)
+                            {
+                                rankReward += $"[i/s{item.Value}:{item.Key}] ";
+                            }
                         }
 
                         string detail = $"[c/00FF00:=== Rank Details ===]\n" +
@@ -219,7 +223,7 @@ namespace Skynomi.RankSystem
                             $"[c/0000FF:Suffix:] {rankSuffix}\n" +
                             $"[c/0000FF:Chat Color:] {formattedColor} ([c/{hex}:#{hex}])\n" +
                             $"[c/0000FF:Cost:] {Utils.Util.CurrencyFormat(rankCost)}\n" +
-                            $"[c/0000FF:Permissioon:] {rankPermission}\n" +
+                            $"[c/0000FF:Permission:] {rankPermission}\n" +
                             $"[c/0000FF:Reward:] {rankReward}";
 
                         args.Player.SendMessage(detail, Color.White);
@@ -232,15 +236,23 @@ namespace Skynomi.RankSystem
                 else if (args.Parameters[0] == "list")
                 {
                     if (!Utils.Util.CheckPermission(Permissions.RankList, args)) return;
+                    if (rankConfig.Ranks.Count == 0)
+                    {
+                        args.Player.SendErrorMessage("No ranks available.");
+                        return;
+                    }
 
-                    string text = "Rank List:";
-                    args.Player.SendSuccessMessage(text);
-                    text = "";
+                    string text = "[c/00FF00:=== Rank List ===]";
+                    int counter = 1;
                     foreach (var rank in rankConfig.Ranks)
                     {
-                        text += $"\"{rank.Key}\" ";
+                        int[] ChatColor = rank.Value.ChatColor;
+                        string hex = $"{ChatColor[0]:X2}{ChatColor[1]:X2}{ChatColor[2]:X2}";
+
+                        text += $"\n{counter}. [c/{hex}:{rank.Key}]";
+                        counter++;
                     }
-                    args.Player.SendInfoMessage(text);
+                    args.Player.SendMessage(text, Color.White);
                 }
                 else
                 {
@@ -251,6 +263,7 @@ namespace Skynomi.RankSystem
             {
                 Utils.Log.Error(ex.ToString());
             }
+
         }
 
         private static void ResetRank(CommandArgs args)
@@ -288,7 +301,7 @@ namespace Skynomi.RankSystem
                     args.Player.SendSuccessMessage("All players rank has been reset.");
                     return;
                 }
-                
+
                 var player = TSPlayer.FindByNameOrID(who).FirstOrDefault(x => x != null && x.Name.Equals(who, StringComparison.OrdinalIgnoreCase));
                 if (player != null)
                 {
