@@ -248,7 +248,7 @@ namespace Skynomi.ShopSystem
             {
                 if (!Utils.Util.CheckPermission(Permissions.List, args)) return;
 
-                int pageSize = 5;
+                int pageSize = shopConfig.ListLength;
                 int currentPage = 1;
                 int totalPages = (int)Math.Ceiling(shopConfig.ShopItems.Count / (double)pageSize);
 

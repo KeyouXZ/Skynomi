@@ -403,6 +403,8 @@ See [Config Document](./Config.md) for this
   - Restricted `rank up/down` commands to players in the `rank` group only
   - Changed config `Cost` type from `int` to `long` to support larger values
   - Miscellaneous logic fixes and improvements
+- Shop System: `v1.2.0` -> `v1.3.0`
+  - New feature: Controls how many items appear per page in the `/shop list` command. Config: `"List Length"`
 
 ## License
 

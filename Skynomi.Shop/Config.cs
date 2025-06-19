@@ -17,6 +17,9 @@ namespace Skynomi.ShopSystem
         [JsonProperty("Shop Region")]
         public string ShopRegion { get; set; } = "ShopRegion";
 
+        [JsonProperty("List Length")]
+        public int ListLength { get; set; } = 5;
+
         [JsonProperty("Shop Items")]
         public Dictionary<string, ShopItem> ShopItems { get; set; } = new Dictionary<string, ShopItem>();
 
