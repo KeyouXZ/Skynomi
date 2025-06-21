@@ -398,6 +398,8 @@ See [Config Document](./Config.md) for this
 
 **Version 3.2.1**
 
+- Skynomi: `v3.2.0` -> `v3.2.1`
+  - Fix possible InvalidCastException at CacheManager
 - Rank System: `v1.2.0` -> `v1.3.0`
   - Renamed `rankutils` command to `rank` for clarity and consistency
   - Restricted `rank up/down` commands to players in the `rank` group only
