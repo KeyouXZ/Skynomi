@@ -171,6 +171,14 @@ This document details the configuration settings for the shop system.
 | Default | "ShopRegion" |
 | Example | "ShopRegion", "Shop" |
 
+### List Length
+
+| Field | Value |
+|-------|--------|
+| Type | Integer |
+| Description | Number of items to display in the shop list |
+| Default | 5 |
+
 ## Shop Items
 
 ### Shop Items Configuration

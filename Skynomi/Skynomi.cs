@@ -14,9 +14,11 @@ namespace Skynomi
         public override string Author => "Keyou";
         public override string Description => "Terraria Economy System";
         public override string Name => "Skynomi";
-        public override Version Version => new(3, 2, 0);
+        public override Version Version => new(3, 2, 1);
 
+        [Obsolete("Use Config instead")]
         public static Config config;
+        public static Config Config;
         private Database.Database database;
 
         private Dictionary<int, NpcInteraction> npcInteractions = new Dictionary<int, NpcInteraction>();
@@ -32,7 +34,7 @@ namespace Skynomi
         public override void Initialize()
         {
             timeBoot = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
-            config = Config.Read();
+            Config = Config.Read();
             database = new Database.Database();
             database.InitializeDatabase();
             database.BalanceInitialize();
@@ -75,7 +77,7 @@ namespace Skynomi
 
         public void Reload(ReloadEventArgs args)
         {
-            config = Config.Read();
+            Config = Config.Read();
 
             Database.Database.Close();
             database = new Database.Database();
@@ -111,7 +113,7 @@ namespace Skynomi
             if (player == null) return;
 
             // Blacklist check
-            if (config.BlacklistNpc.Contains(args.Npc.netID))
+            if (Config.BlacklistNpc.Contains(args.Npc.netID))
                 return;
 
             string playerName = player.Name;
@@ -142,26 +144,26 @@ namespace Skynomi
                     return;
 
                 // Blacklist check
-                if (config.BlacklistNpc.Contains(args.npc.netID))
+                if (Config.BlacklistNpc.Contains(args.npc.netID))
                     return;
 
                 var killer = TShock.Players[args.npc.lastInteraction];
                 if (killer == null || !killer.Active)
                     return;
 
-                if (args.npc.SpawnedFromStatue && !config.RewardFromStatue)
+                if (args.npc.SpawnedFromStatue && !Config.RewardFromStatue)
                 {
                     npcInteractions.Remove(args.npc.whoAmI);
                     return;
                 }
 
-                if ((args.npc.friendly || args.npc.CountsAsACritter) && !config.RewardFromFriendlyNpc)
+                if ((args.npc.friendly || args.npc.CountsAsACritter) && !Config.RewardFromFriendlyNpc)
                 {
                     npcInteractions.Remove(args.npc.whoAmI);
                     return;
                 }
 
-                string rewardFormula = args.npc.boss ? config.BossReward : config.NpcReward;
+                string rewardFormula = args.npc.boss ? Config.BossReward : Config.NpcReward;
 
                 rewardFormula = rewardFormula.Replace("{hp}", args.npc.lifeMax.ToString());
 
@@ -190,7 +192,7 @@ namespace Skynomi
                     long playerReward = (long)(baseReward * damagePercentage);
 
                     double chance = random.NextDouble() * 100;
-                    if (chance > config.RewardChance)
+                    if (chance > Config.RewardChance)
                     {
                         continue;
                     }
@@ -222,11 +224,11 @@ namespace Skynomi
 
         private void PlayerDead(object sender, GetDataHandlers.KillMeEventArgs args)
         {
-            if (args.Player.IsLoggedIn && config.DropOnDeath > 0)
+            if (args.Player.IsLoggedIn && Config.DropOnDeath > 0)
             {
 
                 long playerBalance = database.GetBalance(args.Player.Name);
-                var toLose = (long)(playerBalance * (config.DropOnDeath / 100));
+                var toLose = (long)(playerBalance * (Config.DropOnDeath / 100));
                 database.RemoveBalance(args.Player.Name, toLose);
                 args.Player.SendMessage($"You lost {Utils.Util.CurrencyFormat(toLose)} from dying!", Color.Orange);
                 return;

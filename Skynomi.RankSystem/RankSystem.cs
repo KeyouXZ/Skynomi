@@ -15,7 +15,7 @@ namespace Skynomi.RankSystem
     {
         public string Name => "Rank System";
         public string Description => "Rank system extension for Skynomi";
-        public Version Version => new(1, 2, 0);
+        public Version Version => new(1, 3, 0);
         public string Author => "Keyou";
 
         private static Config rankConfig;
@@ -48,22 +48,22 @@ namespace Skynomi.RankSystem
         private void OnPlayerJoin(GreetPlayerEventArgs args)
         {
             Database.CreatePlayer(TShock.Players[args.Who].Name);
-            var cache = CacheManager.Cache.GetCache<Database.TRank>("Ranks");
-            var ranks = rankConfig.Ranks;
-            var player = TShock.Players[args.Who];
+            CacheManager.CacheEntry<Database.TRank>? cache = CacheManager.Cache.GetCache<Database.TRank>("Ranks");
+            Dictionary<string, Config.Rank>? ranks = rankConfig.Ranks;
+            TSPlayer? player = TShock.Players[args.Who];
 
             if (player.Account == null)
                 return;
 
             if (!cache.TryGetValue(player.Name, out var plrRank)) return;
-            var playerGroup = player.Group;
-            var regex = new Regex(@"rank_(\d+)");
-            var match = regex.Match(playerGroup.Name);
+            TShockAPI.Group? playerGroup = player.Group;
+            Regex? regex = new(@"rank_(\d+)");
+            Match? match = regex.Match(playerGroup.Name);
 
             if (match.Success)
             {
                 // Set to max rank in the configuration
-                if (ranks.Count < plrRank.Rank)
+                if (plrRank.Rank - 1 > ranks.Count)
                 {
                     TShock.UserAccounts.SetUserGroup(player.Account, "rank_" + ranks.Count);
                     cache.Modify(player.Name, e =>
@@ -94,7 +94,7 @@ namespace Skynomi.RankSystem
                                     e.Rank = defaultRank;
                                     return e;
                                 });
-                                
+
                                 message = $"Your rank has been corrected to {Commands.GetRankByIndex(plrRank.Rank - 1)}.";
                             }
                             else
@@ -129,12 +129,20 @@ namespace Skynomi.RankSystem
                 string name = "rank_" + counter;
                 string prefix = key.Value.Prefix;
                 string suffix = key.Value.Suffix;
-                string parent = (counter == 1) ? "default" : "rank_" + (counter - 1);
+                string parent = (counter == 1) ? TShock.Config.Settings.DefaultRegistrationGroupName : "rank_" + (counter - 1);
                 if (!rankConfig.useParent) parent = "";
 
                 int[] color = key.Value.ChatColor;
+                if (color == null || color.Length != 3)
+                {
+                    Log.Warn($"Rank '{name}' ({key.Key}) has invalid chat color. Defaulting to white.");
+                    color = new[] { 255, 255, 255 };
+                }
+                
                 string chatColor = $"{color[0]},{color[1]},{color[2]}";
-                string permission = parent == "" ? key.Value.Permission.Replace(" ", ",") : TShock.Groups.GetGroupByName(parent).Permissions + "," + key.Value.Permission.Replace(" ", ",");
+                var parentGroup = TShock.Groups.GetGroupByName(parent);
+                string parentPermissions = parentGroup != null ? parentGroup.Permissions : "";
+                string permission = parent == "" ? key.Value.Permission.Replace(" ", ",") : parentPermissions + "," + key.Value.Permission.Replace(" ", ",");
 
                 // Create the group
                 if (status == 1)

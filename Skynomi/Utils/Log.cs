@@ -9,8 +9,8 @@ namespace Skynomi.Utils
         private static void CreateFolder() {
             try
             {
-                if (!Directory.Exists(SkynomiPlugin.config.LogPath)) {
-                    Directory.CreateDirectory(SkynomiPlugin.config.LogPath);
+                if (!Directory.Exists(SkynomiPlugin.Config.LogPath)) {
+                    Directory.CreateDirectory(SkynomiPlugin.Config.LogPath);
                 }
             } catch (Exception ex) {
                 Console.ForegroundColor = NameColor;
@@ -36,7 +36,7 @@ namespace Skynomi.Utils
                 string msg =  timestamp + $" [{methodName.ToUpper().First()}]" + $" ({className})" + " => " + message + Environment.NewLine;
 
                 File.AppendAllText(Path.Combine(TShock.SavePath, "Skynomi", "Skynomi.log"), msg);
-                File.AppendAllText(Path.Combine(SkynomiPlugin.config.LogPath, $"{lastBoot}.log"), msg);
+                File.AppendAllText(Path.Combine(SkynomiPlugin.Config.LogPath, $"{lastBoot}.log"), msg);
             } catch (Exception ex) {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.ToString());

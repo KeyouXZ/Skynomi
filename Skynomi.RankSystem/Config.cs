@@ -88,7 +88,7 @@ namespace Skynomi.RankSystem
             public int[] ChatColor = Array.Empty<int>();
 
             [JsonProperty("Cost")]
-            public int Cost;
+            public long Cost;
 
             [JsonProperty("Permission")]
             public string Permission = string.Empty;
