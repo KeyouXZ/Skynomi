@@ -1,10 +1,12 @@
-[![.NET](https://github.com/KeyouXZ/Skynomi/actions/workflows/dotnet.yml/badge.svg)](https://github.com/KeyouXZ/Skynomi/actions/workflows/dotnet.yml) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+> # Skynomi Legacy ⚠️
+> This is a legacy version of Skynomi. No longer actively maintained. 
+> Please use the latest version: [https://github.com/KeyouXZ/Skynomi/tree/main].
 
-# Skynomi - TShock Plugin Documentation
+# Skynomi Legacy - TShock Plugin Documentation
 
 ## Overview
 
-**Skynomi** is a TShock plugin designed to introduce a virtual economy system into your Terraria server. Players can check their balance and send currency to each other using simple commands. The plugin is perfect for servers that want to add a layer of interaction and competition through an economy-based system.
+**Skynomi Legacy** is a TShock plugin designed to introduce a virtual economy system into your Terraria server. Players can check their balance and send currency to each other using simple commands. The plugin is perfect for servers that want to add a layer of interaction and competition through an economy-based system.
 
 ## Features
 
