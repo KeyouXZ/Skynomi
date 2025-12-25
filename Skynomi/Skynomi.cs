@@ -4,6 +4,8 @@ using Terraria;
 using TerrariaApi.Server;
 using TShockAPI.Hooks;
 
+using Skynomi.Modules.Http;
+
 namespace Skynomi;
 
 [ApiVersion(2, 1)]
@@ -22,26 +24,29 @@ public class SkynomiPlugin(Main game) : TerrariaPlugin(game)
     public static Config SkynomiConfig { get; private set; } = null!;
     public static readonly string TimeBoot = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
 
+    private HttpServer? _webServer;
+
     public override void Initialize()
     {
         try
         {
             // Register self
             Instance = this;
-            
+
             // Read config
             SkynomiConfig = Config.Read();
-                
+
             // Register modules
             ModuleManager.AutoRegister();
-            
+
             // Register all hooks
             GeneralHooks.ReloadEvent += Reload;
-            
+            ServerApi.Hooks.GamePostInitialize.Register(this, PostInitialize);
+
             // Initialize all modules
             ModuleManager.InitializeAll();
 
-            Log.Info($"Skynomi {Version} initialized at {TimeBoot}");
+            Log.Success($"Skynomi {Version} initialized at {TimeBoot}");
         }
         catch (Exception ex)
         {
@@ -53,11 +58,17 @@ public class SkynomiPlugin(Main game) : TerrariaPlugin(game)
     {
         try
         {
+            Log.Info("Reloading Skynomi Modules...");
+
             // Reload the config
             SkynomiConfig = Config.Read();
-            
+
             // Reload all modules
             ModuleManager.ReloadAll(e);
+
+            // Reload web server
+            var webConfig = SkynomiConfig.Web;
+            _webServer?.Reload(webConfig.Address, webConfig.Port, webConfig.Secure);
 
             Log.Info(Messages.Reload);
         }
@@ -67,19 +78,33 @@ public class SkynomiPlugin(Main game) : TerrariaPlugin(game)
         }
     }
 
+    private void PostInitialize(EventArgs args)
+    {
+        _webServer = new HttpServer();
+        var webConfig = SkynomiConfig.Web;
+
+        _webServer.Start(webConfig.Address, webConfig.Port, webConfig.Secure);
+
+        ModuleManager.HandleAllWebServer(_webServer.Router);
+        ModuleManager.HandleAllWebSocket(_webServer.WsRouter);
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (!disposing) return;
 
         try
         {
+            Log.Info("Disposing Skynomi Modules...");
             // Dispose modules
             ModuleManager.DisposeAll();
-            
+            _webServer?.Dispose();
+
             // Deregister All Hooks
             GeneralHooks.ReloadEvent -= Reload;
+            ServerApi.Hooks.GamePostInitialize.Deregister(this, PostInitialize);
 
-            Log.Info(Messages.Dispose);
+            Log.Success(Messages.Dispose);
         }
         catch (Exception ex)
         {

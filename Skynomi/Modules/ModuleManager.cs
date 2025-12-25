@@ -1,3 +1,5 @@
+using Skynomi.Modules.Http;
+using Skynomi.Modules.WebSocket;
 using TShockAPI.Hooks;
 
 namespace Skynomi.Modules;
@@ -6,7 +8,7 @@ public static class ModuleManager
 {
     private static readonly Dictionary<Type, ModuleEntry> Modules = new();
 
-    public static void Register(IModule module)
+    private static void Register(IModule module)
     {
         if (Modules.ContainsKey(module.GetType()))
         {
@@ -18,7 +20,7 @@ public static class ModuleManager
         Log.Info($"Registered module {module.Name} v{module.Version.ToString()} by {module.Author}");
     }
 
-    public static void AutoRegister()
+    internal static void AutoRegister()
     {
         var modules = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(a => a.GetTypes())
@@ -49,7 +51,7 @@ public static class ModuleManager
         return entry;
     }
 
-    public static void InitializeAll()
+    internal static void InitializeAll()
     {
         var visited = new HashSet<Type>();
 
@@ -91,8 +93,13 @@ public static class ModuleManager
     {
         return (T)Modules[typeof(T)].Module;
     }
+    
+    internal static List<IModule> GetModules()
+    {
+        return Modules.Values.Select(e => e.Module).ToList();
+    }
 
-    public static void ReloadAll(ReloadEventArgs e)
+    internal static void ReloadAll(ReloadEventArgs e)
     {
         foreach (var entry in Modules.Values)
         {
@@ -100,11 +107,27 @@ public static class ModuleManager
         }
     }
 
-    public static void DisposeAll()
+    internal static void DisposeAll()
     {
         foreach (var entry in Modules.Values)
         {
             entry.Dispose();
+        }
+    }
+
+    internal static void HandleAllWebServer(HttpRouter router)
+    {
+        foreach (var entry in Modules.Values)
+        {
+            entry.RegisterWebServer(router);
+        }
+    }
+    
+    internal static void HandleAllWebSocket(WebSocketRouter router)
+    {
+        foreach (var entry in Modules.Values)
+        {
+            entry.RegisterWebSocket(router);
         }
     }
 }
