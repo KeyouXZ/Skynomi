@@ -82,10 +82,10 @@ public abstract class Commands
 
         var player = args.Player;
         var regex = Rank.RankRegex();
-        var match = regex.Match(player.Account.Group);
+        var match = regex.Match(player.Group.Name);
 
         // not in rank check
-        if (!player.Account.Group.Equals(TShock.Config.Settings.DefaultRegistrationGroupName) || !match.Success)
+        if (!player.Account.Group.Equals(TShock.Config.Settings.DefaultRegistrationGroupName) && !match.Success)
         {
             args.Player.SendErrorMessage("You are not in a rank group!");
             return;
@@ -107,6 +107,7 @@ public abstract class Commands
         }
 
         string nextRank = Utils.GetRankByIndex(rank)!;
+
         var balance = economyModule.Db.GetWalletBalance(player.Account.Name);
 
         if (balance is null)
@@ -141,8 +142,9 @@ public abstract class Commands
         });
 
         economyModule.Db.UpdateWalletBalance(args.Player.Account.Name, x => x.Balance -= rankCost);
-        TShock.UserAccounts.SetUserGroup(TShock.UserAccounts.GetUserAccountByName(args.Player.Account.Name),
-            "rank_" + (rank + 1));
+
+        TShock.UserAccounts.SetUserGroup(TShock.UserAccounts.GetUserAccountByName(args.Player.Name), "rank_" + (rank + 1));
+        args.Player.Group = TShock.Groups.GetGroupByName("rank_" + (rank + 1));
 
         if (rankModule.RankConfig.AnnounceRankUp)
         {
@@ -168,10 +170,10 @@ public abstract class Commands
 
         var player = args.Player;
         var regex = Rank.RankRegex();
-        var match = regex.Match(player.Account.Group);
+        var match = regex.Match(player.Group.Name);
 
         // not in rank check
-        if (!player.Account.Group.Equals(TShock.Config.Settings.DefaultRegistrationGroupName) || !match.Success)
+        if (!player.Account.Group.Equals(TShock.Config.Settings.DefaultRegistrationGroupName) && !match.Success)
         {
             args.Player.SendErrorMessage("You are not in a rank group!");
             return;
@@ -191,6 +193,8 @@ public abstract class Commands
 
             TShock.UserAccounts.SetUserGroup(TShock.UserAccounts.GetUserAccountByName(args.Player.Name),
                 "rank_" + (rank - 1));
+
+            args.Player.Group = TShock.Groups.GetGroupByName("rank_" + (rank - 1));
             args.Player.SendInfoMessage(
                 $"Your rank has been downgraded to {nextRank} and get {utilsModule.CurrencyFormat(rankCost)}.");
         }

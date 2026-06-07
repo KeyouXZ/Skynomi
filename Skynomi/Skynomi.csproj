@@ -11,7 +11,7 @@
 
     <ItemGroup>
       <PackageReference Include="LiteDB" Version="5.0.21" />
-      <PackageReference Include="TShock" Version="5.2.4" />
+      <PackageReference Include="TShock" Version="6.1.0" />
     </ItemGroup>
 
 </Project>

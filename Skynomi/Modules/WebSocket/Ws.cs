@@ -1,11 +1,9 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using Skynomi.Modules;
-using Skynomi.Modules.WebSocket;
 using TShockAPI;
 
-namespace Skynomi;
+namespace Skynomi.Modules.WebSocket;
 
 public abstract class Ws
 {
@@ -17,7 +15,7 @@ public abstract class Ws
 
 internal abstract class WsCore
 {
-    public static async Task OnConnect(WebSocket socket)
+    public static async Task OnConnect(System.Net.WebSockets.WebSocket socket)
     {
         try
         {

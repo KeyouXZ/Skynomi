@@ -32,7 +32,7 @@ public partial class Rank : Modules.IModule, Modules.IReloadable, Modules.IDispo
         ServerApi.Hooks.NetGreetPlayer.Register(SkynomiPlugin.Instance, GreetPlayer);
         ServerApi.Hooks.GameUpdate.Register(SkynomiPlugin.Instance, OnGameUpdate);
         GetDataHandlers.PlayerUpdate += OnPlayerUpdate;
-        
+
         Commands.Initialize();
     }
 
@@ -120,6 +120,8 @@ public partial class Rank : Modules.IModule, Modules.IReloadable, Modules.IDispo
             }
 
             TShock.UserAccounts.SetUserGroup(player.Account, corrected);
+            player.Group = TShock.Groups.GetGroupByName(corrected);
+
             player.SendMessage(message, Color.Orange);
             Log.Debug($"Corrected {player.Account.Name} rank!");
         }
@@ -180,7 +182,7 @@ public partial class Rank : Modules.IModule, Modules.IReloadable, Modules.IDispo
             TShock.Groups.UpdateGroup(name, parent, permission, chatColor, suffix, prefix);
 
             counter++;
-            
+
             Log.Debug($"New group: name={name} parent={parent}");
         }
     }

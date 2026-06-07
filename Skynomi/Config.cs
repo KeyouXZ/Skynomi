@@ -20,7 +20,8 @@ public class Config
 
         try
         {
-            var defaultConfig = new Config().DefaultConfig();
+            // var defaultConfig = new Config().DefaultConfig();
+            var defaultConfig = new Config();
 
             if (!File.Exists(configPath))
             {
@@ -39,21 +40,21 @@ public class Config
         }
     }
 
-    private Config DefaultConfig()
-    {
-        var defaultConfig = new Config
-        {
-            Web =
-            {
-                Secure = false,
-                Address = "localhost",
-                Port = 7978,
-                Root = "tshock/Skynomi/logs"
-            }
-        };
-        
-        return defaultConfig;
-    }
+    // private Config DefaultConfig()
+    // {
+    //     var defaultConfig = new Config
+    //     {
+    //         Web =
+    //         {
+    //             Secure = false,
+    //             Address = "localhost",
+    //             Port = 7978,
+    //             Root = "tshock/Skynomi/web"
+    //         }
+    //     };
+    //     
+    //     return defaultConfig;
+    // }
 
     public class WebServer
     {
